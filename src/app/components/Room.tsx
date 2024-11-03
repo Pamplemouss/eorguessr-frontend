@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useGameContext } from "../GameContextProvider";
-import { GameState } from "../types/GameState";
+import { RoundState } from "../types/RoundState";
 import PlayerList from "./PlayerList";
 import StartGame from "./StartGame";
 import PlayGame from "./PlayGame";
@@ -15,9 +15,9 @@ const Room = () => {
     return (
         <>
             <h1>Room ID: {room.id}</h1>
-            {state.gameState === GameState.SETUP && <StartGame />}
-            {state.gameState === GameState.PLAY && <PlayGame />}
-            {state.gameState === GameState.ENDROUND && <EndRound />}
+            {state.gameState === RoundState.SETUP && <StartGame />}
+            {state.gameState === RoundState.PLAY && <PlayGame />}
+            {state.gameState === RoundState.ENDROUND && <EndRound />}
             <PlayerList />
         </>
     );
