@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useGameContext } from "../GameContextProvider";
 
 const CreateJoinRoom = () => {
-    const { setState, setRoom } = useGameContext();
+    const { setGameState, setRoom } = useGameContext();
     const [roomId, setRoomId] = useState<string | null>(null);
 
     const joinRoom = async () => {
@@ -23,7 +23,7 @@ const CreateJoinRoom = () => {
 
     const listenToChanges = (room: Room) => {
         room?.onStateChange(() => {
-            setState({
+            setGameState({
                 ...room.state,
             });
         });

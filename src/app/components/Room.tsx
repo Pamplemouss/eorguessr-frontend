@@ -7,17 +7,17 @@ import PlayGame from "./PlayGame";
 import EndRound from "./EndRound";
 
 const Room = () => {
-    const { state, room } = useGameContext();
+    const { gameState, room } = useGameContext();
     
-    if (!room || !state) {
+    if (!room || !gameState) {
         return;
     }
     return (
         <>
             <h1>Room ID: {room.id}</h1>
-            {state.gameState === RoundState.SETUP && <StartGame />}
-            {state.gameState === RoundState.PLAY && <PlayGame />}
-            {state.gameState === RoundState.ENDROUND && <EndRound />}
+            {gameState.roundState === RoundState.SETUP && <StartGame />}
+            {gameState.roundState === RoundState.PLAY && <PlayGame />}
+            {gameState.roundState === RoundState.ENDROUND && <EndRound />}
             <PlayerList />
         </>
     );

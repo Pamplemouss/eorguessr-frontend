@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import { State } from "./types/State";
+import { GameState } from "./types/GameState";
 import { Room } from "colyseus.js";
 
 export interface IGameContextProvider {
-    state: State | null;
-    setState: (state: State) => void;
+    gameState: GameState | null;
+    setGameState: (state: GameState) => void;
     room: Room | null;
     setRoom: (room: Room) => void;
 }
@@ -22,12 +22,12 @@ export const GameContextProvider = ({
 }: {
     children: React.ReactNode;
 }) => {
-    const [state, setState] = useState<State | null>(null);
+    const [gameState, setGameState] = useState<GameState | null>(null);
     const [room, setRoom] = useState<Room | null>(null);
 
     const gameContext = {
-        state,
-        setState,
+        gameState,
+        setGameState,
         room,
         setRoom,
     };
