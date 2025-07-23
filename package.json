@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "colyseus": "^0.15.17",
-    "colyseus.js": "^0.15.26",
+    "colyseus": "^0.16.4",
+    "colyseus.js": "^0.16.4",
     "next": "14.2.15",
     "react": "^18",
     "react-dom": "^18"
