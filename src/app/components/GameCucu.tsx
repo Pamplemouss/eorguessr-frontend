@@ -1,6 +1,7 @@
 import React from "react";
 import { GameState } from "../types/types/GameState";
 import { useGame } from "./contexts/GameContextProvider";
+import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
 
 export default function GameCucu() {
     const { room, state } = useGame();
@@ -24,6 +25,12 @@ export default function GameCucu() {
                     ))
                     : <li>Aucun joueur</li>}
             </ul>
+            <ReactPhotoSphereViewer
+                src="photospheres/476.webp"
+                height={"100vh"}
+                width={"100vw"}
+            ></ReactPhotoSphereViewer>
+            aa
         </div>
     );
 }
