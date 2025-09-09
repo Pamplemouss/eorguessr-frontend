@@ -5,8 +5,8 @@ import { GameState } from "./GameState";
 
 export class State extends Schema {
     @type({ map: Player }) players = new MapSchema<Player>();
-    @type("int8") currentRound: number;
-    @type("int8") maxRounds: number;
-    @type("int8") gameState: GameState;
+    @type("int8") currentRound!: number;
+    @type("int8") maxRounds!: number;
+    @type("int8") gameState!: GameState;
     @view() @type({ map: Location }) locations = new MapSchema<Location>();
 }

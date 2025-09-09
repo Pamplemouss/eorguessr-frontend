@@ -27,10 +27,9 @@ export default function GameCucu() {
             </ul>
             <ReactPhotoSphereViewer
                 src="photospheres/476.webp"
-                height={"100vh"}
-                width={"100vw"}
+                height={"50vh"}
+                width={"50vw"}
             ></ReactPhotoSphereViewer>
-            aa
         </div>
     );
 }
