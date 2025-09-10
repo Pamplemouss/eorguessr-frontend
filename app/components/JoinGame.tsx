@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useGame } from "./contexts/GameContextProvider";
-import { GameState } from "../types/common/GameState";
+import { GameState } from "@/lib/types/common/GameState";
 import { Room } from "colyseus.js";
 
 const JoinGame = () => {

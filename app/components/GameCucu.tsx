@@ -1,5 +1,5 @@
 import React from "react";
-import { GameStep } from "../types/common/GameStep";
+import { GameStep } from "@/lib/types/common/GameStep";
 import { useGame } from "./contexts/GameContextProvider";
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
 

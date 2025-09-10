@@ -11,15 +11,21 @@
   "dependencies": {
     "colyseus": "^0.16.4",
     "colyseus.js": "^0.16.4",
+    "mongodb": "^6.19.0",
+    "mongoose": "^8.18.1",
     "next": "14.2.15",
     "react": "^18",
     "react-dom": "^18",
-    "react-photo-sphere-viewer": "^6.2.3"
+    "react-photo-sphere-viewer": "^6.2.3",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/mongodb": "^4.0.6",
+    "@types/mongoose": "^5.11.96",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.15",
     "postcss": "^8",

@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Client, Room } from "colyseus.js";
-import { GameState } from "@/app/types/common/GameState";
-import type { GameContext } from "@/app/types/GameContext";
+import { GameState } from "@/lib/types/common/GameState";
+import type { GameContext } from "@/lib/types/GameContext";
 
 const GameContext = createContext<GameContext>({
     client: null,
