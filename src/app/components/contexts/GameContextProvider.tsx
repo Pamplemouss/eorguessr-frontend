@@ -3,15 +3,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Client, Room } from "colyseus.js";
 import { GameState } from "@/app/types/common/GameState";
+import type { GameContext } from "@/app/types/GameContext";
 
-interface GameContextType {
-    client: Client | null;
-    room: Room<GameState> | null;
-    gameState: GameState | null;
-    setRoom: (room: Room<GameState> | null) => void;
-}
-
-const GameContext = createContext<GameContextType>({
+const GameContext = createContext<GameContext>({
     client: null,
     room: null,
     gameState: null,
@@ -49,7 +43,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     );
 }
 
-export function useGame(): GameContextType {
+export function useGame(): GameContext {
     return useContext(GameContext);
 }
 ``

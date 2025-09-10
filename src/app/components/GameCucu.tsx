@@ -18,15 +18,19 @@ export default function GameCucu() {
             <h3>Joueurs</h3>
             <ul>
                 {gameState.players
-                    ? Array.from(gameState.players.values()).map((player, index) => (
-                        <li key={player.name || index}>
+                    ? Array.from(gameState.players.entries()).map(([sessionId, player], index) => (
+                        <li
+                            key={sessionId}
+                            className={sessionId === room?.sessionId ? "font-bold" : ""}
+                        >
                             {player.name}
                         </li>
                     ))
                     : <li>Aucun joueur</li>}
             </ul>
-            {gameState.gameStep === GameStep.LOBBY && (
-                <button onClick={() => {room?.send("startGame")} }>Démarrer le jeu</button>
+
+            {gameState.gameStep === GameStep.LOBBY && gameState.gameMasterId === room?.sessionId && (
+                <button onClick={() => { room?.send("startGame") }}>Démarrer le jeu</button>
             )}
             {gameState.gameStep === GameStep.PLAYING && (
                 <ReactPhotoSphereViewer
