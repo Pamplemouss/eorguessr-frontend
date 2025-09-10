@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useGame } from "./contexts/GameContextProvider";
-import { State } from "../types/types/State";
+import { GameState } from "../types/common/GameState";
 import { Room } from "colyseus.js";
 
 const JoinGame = () => {
@@ -14,7 +14,7 @@ const JoinGame = () => {
             try {
                 const newRoom = await client.create("game_room");
                 console.log("🎮 Created or joined room:", newRoom.roomId);
-                setRoom(newRoom as Room<State>);
+                setRoom(newRoom as Room<GameState>);
             } catch (err) {
                 console.error("❌ Failed to join/create room:", err);
             }
@@ -26,7 +26,7 @@ const JoinGame = () => {
             try {
                 const joinedRoom = await client.joinById(roomId.trim());
                 console.log("🔗 Joined room:", joinedRoom.roomId);
-                setRoom(joinedRoom as Room<State>);
+                setRoom(joinedRoom as Room<GameState>);
             } catch (err) {
                 console.error("❌ Failed to join room by ID:", err);
             }

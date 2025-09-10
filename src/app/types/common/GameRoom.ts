@@ -1,9 +1,9 @@
 import { Room, Client } from "colyseus";
-import { State } from "./State";
+import { GameState } from "./GameState";
 import { Player } from "./Player";
 
 export class GameRoom extends Room {
-    state = new State();
+    state = new GameState();
 
     // When room is initialized
     onCreate(options: any) {

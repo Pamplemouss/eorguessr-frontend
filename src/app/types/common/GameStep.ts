@@ -1,4 +1,4 @@
-export enum GameState {
+export enum GameStep {
     LOBBY,
     PLAYING,
     FINISHED,
