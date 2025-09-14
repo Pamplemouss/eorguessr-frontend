@@ -1,5 +1,5 @@
 "use client";
-import { MapContainer, Marker, Polygon, ImageOverlay, useMap } from "react-leaflet";
+import { MapContainer, Marker, Polygon, ImageOverlay } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { IMap } from "@/lib/models/MapModel";

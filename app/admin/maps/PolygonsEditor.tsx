@@ -24,11 +24,11 @@ const PolygonsEditor = () => {
             // Convertit en format [lng, lat]
             if (Array.isArray(latlngs[0])) {
                 latlngs[0].forEach((latlng: any) => {
-                    polygon.push([latlng.lng, latlng.lat]);
+                    polygon.push([latlng.lat, latlng.lng]);
                 });
             }
 
-            alert("Polygon créé : " + JSON.stringify(polygon));
+            console.log("Polygon créé : " + JSON.stringify(polygon));
         });
     }, [map]);
 
