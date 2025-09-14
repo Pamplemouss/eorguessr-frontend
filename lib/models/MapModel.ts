@@ -1,22 +1,25 @@
 import mongoose, { Schema, Document, model, Model } from 'mongoose';
 import { MapType } from '../types/MapType';
+import { Marker } from '../types/Marker';
 
 export interface IMap extends Document {
 	id: string;
 	name: string;
 	expansion?: string;
 	type?: MapType;
-	markers: {
-		target: string;
-		latLng: [number, number];
-		geojson?: {
-			polygons: [number, number][][];
-			hitbox: [number, number][][];
-		};
-	}[];
+	markers: Marker[];
 	subAreas?: string[];
 	imagePath?: string;
 }
+
+const MarkerSchema = new Schema<Marker>({
+	target: { type: String, required: true },
+	latLng: { type: [Number], required: true },
+	geojson: {
+		area: { type: [[Number]], default: [] },
+		hitbox: { type: [[Number]], default: [] },
+	},
+});
 
 const MapSchema: Schema<IMap> = new Schema({
 	id: { type: String, required: true, unique: true },
@@ -27,16 +30,7 @@ const MapSchema: Schema<IMap> = new Schema({
 		enum: Object.values(MapType),
 		default: MapType.MAP,
 	},
-	markers: [
-		{
-			target: { type: String, required: true },
-			latLng: { type: [Number], required: true },
-			geojson: {
-				polygons: [[[Number]]],
-				hitbox: [[[Number]]],
-			},
-		},
-	],
+	markers: [MarkerSchema],
 	subAreas: [String],
 	imagePath: String,
 });

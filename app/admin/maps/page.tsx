@@ -1,10 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid"; // ✅ import uuid
 import { IMap } from "@/lib/models/MapModel";
 import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
 import { MapType } from "@/lib/types/MapType";
 import { ExpansionType } from "@/lib/types/ExpansionType";
+import dynamic from "next/dynamic";
+import MarkerFormList from "./MarkerFormList";
+
+const MapEditor = dynamic(() => import("./MapEditor"), { ssr: false });
 
 export default function AdminMapsPage() {
 	const [maps, setMaps] = useState<IMap[]>([]);
@@ -24,7 +27,6 @@ export default function AdminMapsPage() {
 			const m = maps.find((m) => m.id === selectedMapId);
 			if (m) setForm(m);
 		} else {
-			// reset avec un nouvel uuid
 			setForm(createEmptyMapForm());
 		}
 	}, [selectedMapId]);
@@ -36,6 +38,8 @@ export default function AdminMapsPage() {
 	const handleSave = async () => {
 		if (!form.name) return alert("Le nom est requis !");
 		setIsSaving(true);
+
+		console.log("Saving form:", form);
 
 		const res = await fetch(`/api/maps/${form.id}`, {
 			method: "PUT",
@@ -53,7 +57,6 @@ export default function AdminMapsPage() {
 		}
 
 		setIsSaving(false);
-		alert("Map sauvegardée !");
 	};
 
 	const handleDelete = async () => {
@@ -63,125 +66,143 @@ export default function AdminMapsPage() {
 		await fetch(`/api/maps/${selectedMapId}`, { method: "DELETE" });
 		setMaps(maps.filter((m) => m.id !== selectedMapId));
 		setSelectedMapId(null);
-		setForm({ id: uuidv4(), name: "", expansion: "", imagePath: "" }); // reset avec nouvel uuid
+		setForm(createEmptyMapForm());
 	};
 
 	return (
-		<div className="p-4 flex flex-col gap-4">
-			<h1 className="text-2xl mb-4">Admin - Maps</h1>
+		<div className="flex h-screen w-screen">
+			<div className="p-4 flex flex-col gap-4">
+				<h1 className="text-2xl mb-4">Admin - Maps</h1>
 
-			<div className="flex items-center gap-2 mb-4">
-				<input
-					placeholder="Rechercher..."
-					value={search}
-					onChange={(e) => setSearch(e.target.value)}
-					className="border p-2 w-64"
-				/>
-				<button
-					className="bg-green-500 text-white px-4 py-2"
-					onClick={() => setSelectedMapId(null)}
-				>
-					+ Créer une nouvelle map
-				</button>
-			</div>
-
-			<div className="border p-2 rounded max-w-md">
-				{filteredMaps.length === 0 ? (
-					<p>Aucune map trouvée.</p>
-				) : (
-					<ul>
-						{filteredMaps.map((m) => (
-							<li
-								key={m.id}
-								className={`p-2 cursor-pointer hover:bg-gray-100 ${selectedMapId === m.id ? "bg-gray-200" : ""
-									}`}
-								onClick={() => setSelectedMapId(m.id)}
-							>
-								<span className="font-bold">{m.name}</span>{" "}
-								{m.expansion && (
-									<span className="text-gray-500">({m.type})</span>
-								)}
-							</li>
-						))}
-					</ul>
-				)}
-			</div>
-
-			{/* Formulaire CRUD */}
-			<div className="border p-4 rounded max-w-md flex flex-col gap-2">
-				<h2 className="text-xl">
-					{selectedMapId ? "Éditer la map" : "Créer une map"}
-				</h2>
-
-				{/* ✅ UUID affiché en lecture seule */}
-				<input
-					type="text"
-					value={form.id || ""}
-					disabled
-					className="border p-2 bg-gray-100 text-gray-500"
-				/>
-
-				<input
-					type="text"
-					placeholder="Nom"
-					value={form.name || ""}
-					onChange={(e) => setForm({ ...form, name: e.target.value })}
-					className="border p-2"
-				/>
-
-				{/* Expansion Type Selector */}
-				<select
-					value={form.expansion || ExpansionType.ARR}
-					onChange={(e) => setForm({ ...form, expansion: e.target.value as ExpansionType })}
-					className="border p-2"
-				>
-					{Object.values(ExpansionType).map((exp) => (
-						<option key={exp} value={exp}>
-							{exp}
-						</option>
-					))}
-				</select>
-
-				{/* Map Type Selector */}
-				<select
-					value={form.type || MapType.MAP}
-					onChange={(e) => setForm({ ...form, type: e.target.value as MapType })}
-					className="border p-2"
-				>
-					{Object.values(MapType).map((type) => (
-						<option key={type} value={type}>
-							{type}
-						</option>
-					))}
-				</select>
-
-				<input
-					type="text"
-					placeholder="Image Path"
-					value={form.imagePath || ""}
-					onChange={(e) => setForm({ ...form, imagePath: e.target.value })}
-					className="border p-2"
-				/>
-
-				<div className="flex gap-2 mt-2">
+				{/* Recherche + bouton créer */}
+				<div className="flex items-center gap-2 mb-4">
+					<input
+						placeholder="Rechercher..."
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						className="border p-2 w-64"
+					/>
 					<button
-						className="bg-blue-500 text-white px-4 py-2"
-						onClick={handleSave}
-						disabled={isSaving}
+						className="bg-green-500 text-white px-4 py-2"
+						onClick={() => setSelectedMapId(null)}
 					>
-						{isSaving ? "Sauvegarde..." : "Sauvegarder"}
+						+ Créer une nouvelle map
 					</button>
+				</div>
 
-					{selectedMapId && (
-						<button
-							className="bg-red-500 text-white px-4 py-2"
-							onClick={handleDelete}
-						>
-							Supprimer
-						</button>
+				{/* Liste des maps */}
+				<div className="border p-2 rounded max-w-md">
+					{filteredMaps.length === 0 ? (
+						<p>Aucune map trouvée.</p>
+					) : (
+						<ul>
+							{filteredMaps.map((m) => (
+								<li
+									key={m.id}
+									className={`p-2 cursor-pointer hover:bg-gray-100 ${selectedMapId === m.id ? "bg-gray-200" : ""
+										}`}
+									onClick={() => setSelectedMapId(m.id)}
+								>
+									<span className="font-bold">{m.name}</span>{" "}
+									{m.type && (
+										<span className="text-gray-500">({m.type})</span>
+									)}
+								</li>
+							))}
+						</ul>
 					)}
 				</div>
+
+				{/* Formulaire CRUD */}
+				<div className="border p-4 rounded max-w-md flex flex-col gap-2">
+					<h2 className="text-xl">
+						{selectedMapId ? "Éditer la map" : "Créer une map"}
+					</h2>
+
+					{/* UUID affiché */}
+					<input
+						type="text"
+						value={form.id || ""}
+						disabled
+						className="border p-2 bg-gray-100 text-gray-500"
+					/>
+
+					<input
+						type="text"
+						placeholder="Nom"
+						value={form.name || ""}
+						onChange={(e) => setForm({ ...form, name: e.target.value })}
+						className="border p-2"
+					/>
+
+					{/* Expansion */}
+					<select
+						value={form.expansion || ExpansionType.ARR}
+						onChange={(e) =>
+							setForm({ ...form, expansion: e.target.value as ExpansionType })
+						}
+						className="border p-2"
+					>
+						{Object.values(ExpansionType).map((exp) => (
+							<option key={exp} value={exp}>
+								{exp}
+							</option>
+						))}
+					</select>
+
+					{/* Map Type */}
+					<select
+						value={form.type || MapType.MAP}
+						onChange={(e) =>
+							setForm({ ...form, type: e.target.value as MapType })
+						}
+						className="border p-2"
+					>
+						{Object.values(MapType).map((type) => (
+							<option key={type} value={type}>
+								{type}
+							</option>
+						))}
+					</select>
+
+					<input
+						type="text"
+						placeholder="Image Path"
+						value={form.imagePath || ""}
+						onChange={(e) => setForm({ ...form, imagePath: e.target.value })}
+						className="border p-2"
+					/>
+
+					<div className="flex gap-2 mt-2">
+						<button
+							className="bg-blue-500 text-white px-4 py-2"
+							onClick={handleSave}
+							disabled={isSaving}
+						>
+							{isSaving ? "Sauvegarde..." : "Sauvegarder"}
+						</button>
+
+						{selectedMapId && (
+							<button
+								className="bg-red-500 text-white px-4 py-2"
+								onClick={handleDelete}
+							>
+								Supprimer
+							</button>
+						)}
+					</div>
+				</div>
+
 			</div>
+			<div>
+				<MarkerFormList
+					markers={form.markers || []}
+					onChange={(markers) => setForm({ ...form, markers })}
+				/>
+			</div>
+			<div className="w-full h-full flex items-center justify-center">{form && (
+				<MapEditor form={form} />
+			)}</div>
 		</div>
 	);
 }
