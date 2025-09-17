@@ -5,7 +5,7 @@ import { Expansion } from "../types/ExpansionEnum";
 
 export const createEmptyMapForm = (): Partial<Map> => ({
     id: uuidv4(),
-    name: "",
+    name: { en: "", fr: "", de: "", ja: "" },
     type: MapType.MAP,
     expansion: Expansion.ARR,
     imagePath: "",

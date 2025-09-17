@@ -2,14 +2,16 @@
 import { useState, useEffect } from "react";
 import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
 import { MapType } from "@/lib/types/MapTypeEnum";
-import { Map } from "@/lib/types/Map";
+import { Map, MapName } from "@/lib/types/Map";
 import { Expansion } from "@/lib/types/ExpansionEnum";
 import dynamic from "next/dynamic";
 import MarkerFormList from "./MarkerFormList";
+import { useLocale } from "@/app/components/contexts/LocalContextProvider";
 
 const MapEditor = dynamic(() => import("./EditorMap"), { ssr: false });
 
 export default function AdminMapsPage() {
+	const {locale, setLocale} = useLocale();
 	const [maps, setMaps] = useState<Map[]>([]);
 	const [selectedMapId, setSelectedMapId] = useState<string | null>(null);
 	const [search, setSearch] = useState("");
@@ -32,7 +34,7 @@ export default function AdminMapsPage() {
 	}, [selectedMapId]);
 
 	const filteredMaps = maps.filter((m) =>
-		m.name.toLowerCase().includes(search.toLowerCase())
+		(m.name["en"] || "").toLowerCase().includes(search.toLowerCase())
 	);
 
 	const handleSave = async () => {
@@ -75,11 +77,40 @@ export default function AdminMapsPage() {
 		setForm(createEmptyMapForm());
 	};
 
+	function updateMapNameLocale(
+		locale: keyof MapName,
+		value: string
+	) {
+		setForm({
+			...form,
+			name: {
+				en: form.name?.en ?? "",
+				fr: form.name?.fr ?? "",
+				de: form.name?.de ?? "",
+				ja: form.name?.ja ?? "",
+				[locale]: value
+			}
+		});
+	}
+
 	return (
 		<div className="flex h-screen w-screen">
 			<div className="p-4 flex flex-col gap-4">
 				<h1 className="text-2xl mb-4">Admin - Maps</h1>
-
+				{/* Langue */}
+				<div className="flex items-center gap-2 mb-4">
+					<label className="font-bold">Langue:</label>
+					<select
+						value={locale}
+						onChange={(e) => setLocale(e.target.value)}
+						className="border p-2"
+					>
+						<option value="en">English</option>
+						<option value="fr">Français</option>
+						<option value="de">Deutsch</option>
+						<option value="ja">日本語</option>
+					</select>
+				</div>
 				{/* Recherche + bouton créer */}
 				<div className="flex items-center gap-2 mb-4">
 					<input
@@ -109,7 +140,7 @@ export default function AdminMapsPage() {
 										}`}
 									onClick={() => setSelectedMapId(m.id)}
 								>
-									<span className="font-bold">{m.name}</span>{" "}
+									<span className="font-bold">{m.name?.en || "Sans nom"}</span>{" "}
 									{m.type && (
 										<span className="text-gray-500">({m.type})</span>
 									)}
@@ -133,13 +164,38 @@ export default function AdminMapsPage() {
 						className="border p-2 bg-gray-100 text-gray-500"
 					/>
 
-					<input
-						type="text"
-						placeholder="Nom"
-						value={form.name || ""}
-						onChange={(e) => setForm({ ...form, name: e.target.value })}
-						className="border p-2"
-					/>
+					{/* Map Name Locales */}
+					<div className="flex flex-col gap-2">
+						<label className="font-bold">Nom de la map (locales):</label>
+						<input
+							type="text"
+							placeholder="Nom (EN)"
+							value={form.name?.en || ""}
+							onChange={(e) => updateMapNameLocale("en", e.target.value)}
+							className="border p-2"
+						/>
+						<input
+							type="text"
+							placeholder="Nom (FR)"
+							value={form.name?.fr || ""}
+							onChange={(e) => updateMapNameLocale("fr", e.target.value)}
+							className="border p-2"
+						/>
+						<input
+							type="text"
+							placeholder="Nom (DE)"
+							value={form.name?.de || ""}
+							onChange={(e) => updateMapNameLocale("de", e.target.value)}
+							className="border p-2"
+						/>
+						<input
+							type="text"
+							placeholder="Nom (JA)"
+							value={form.name?.ja || ""}
+							onChange={(e) => updateMapNameLocale("ja", e.target.value)}
+							className="border p-2"
+						/>
+					</div>
 
 					{/* Expansion */}
 					<select
@@ -194,7 +250,7 @@ export default function AdminMapsPage() {
 							.filter((m) => m.type === MapType.REGION)
 							.map((region) => (
 								<option key={region.id} value={region.id}>
-									{region.name}
+									{region.name?.en || "Sans nom"}
 								</option>
 							))}
 					</select>

@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
+import { useLocale } from "@/app/components/contexts/LocalContextProvider";
 
 function getTextIcon(text: string, isHovered: boolean, isExit: boolean) {
 	// Create a temporary span to measure text size
@@ -31,6 +32,7 @@ function getTextIcon(text: string, isHovered: boolean, isExit: boolean) {
 }
 
 export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Map[] }) {
+	const { locale } = useLocale();
 	const defaultBounds: L.LatLngBoundsExpression = [[-100, -100], [100, 100]];
 
 	const specialBounds: Record<string, L.LatLngBoundsExpression> = {
@@ -47,8 +49,13 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 	const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
 	// Helper to get map name from ID
-	const getMapName = (id: string) =>
-		getMapById(maps, id)?.name || "Unknown";
+	const getMapName = (id: string) => {
+		const map = getMapById(maps, id);
+		if (!map) return "Unknown";
+		// Ensure locale is a valid key of MapName
+		return map.name[locale as keyof typeof map.name] || "Unknown";
+	};
+	
 	return (
 		<div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
 			<MapContainer

@@ -15,7 +15,12 @@ const MarkerSchema = new Schema<Marker>({
 
 const MapSchema: Schema<Map> = new Schema({
 	id: { type: String, required: true, unique: true },
-	name: { type: String, required: true },
+	name: {
+		en: { type: String, required: true },
+		fr: { type: String, required: true },
+		de: { type: String, required: true },
+		ja: { type: String, required: true },
+	},
 	expansion: String,
 	type: {
 		type: String,

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/public/globals.css";
+import { LocaleProvider } from "./components/contexts/LocalContextProvider";
 
 export const metadata: Metadata = {
     title: "Create Next App",
@@ -12,8 +13,10 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body>{children}</body>
-        </html>
+        <LocaleProvider>
+            <html lang="en">
+                <body>{children}</body>
+            </html>
+        </LocaleProvider>
     );
 }

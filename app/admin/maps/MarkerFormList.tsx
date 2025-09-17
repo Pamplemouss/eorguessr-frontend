@@ -1,10 +1,11 @@
 import { Marker } from "@/lib/types/Marker";
+import { Map } from "@/lib/types/Map";
 import React, { useState } from "react";
 
 interface MarkerFormListProps {
     markers: Marker[];
     onChange: (markers: Marker[]) => void;
-    maps: { id: string; name: string }[]; // Add this prop
+    maps: Map[];
 }
 
 const emptyMarker = (): Marker => ({
@@ -53,7 +54,7 @@ export default function MarkerFormList({ markers, onChange, maps }: MarkerFormLi
     };
 
     // Helper to get map name from ID
-    const getMapName = (id: string) => maps.find(m => m.id === id)?.name || id;
+    const getMapName = (id: string) => maps.find(m => m.id === id)?.name["en"] || id;
 
     /** Conversion textarea → array */
     const parseTextarea = (text: string): [number, number][] => {
@@ -128,7 +129,7 @@ export default function MarkerFormList({ markers, onChange, maps }: MarkerFormLi
                     <option value="">Sélectionner la map cible</option>
                     {maps.map((map) => (
                         <option key={map.id} value={map.id}>
-                            {map.name}
+                            {map.name["en"] || "Sans nom"}
                         </option>
                     ))}
                 </select>
