@@ -1,4 +1,4 @@
-export enum ExpansionType {
+export enum Expansion {
     ARR = "ARR",
     HW = "HW",
     SB = "SB",

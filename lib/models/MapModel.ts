@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, model, Model } from 'mongoose';
-import { MapType } from '../types/MapType';
+import { MapType } from '../types/MapTypeEnum';
 import { Marker } from '../types/Marker';
 import { Map } from '../types/Map';
 

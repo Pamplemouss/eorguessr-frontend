@@ -1,10 +1,11 @@
-import { MapType } from '../types/MapType';
+import { MapType } from './MapTypeEnum';
 import { Marker } from '../types/Marker';
+import { Expansion } from './ExpansionEnum';
 
-export interface Map extends Document {
+export interface Map {
 	id: string;
 	name: string;
-	expansion?: string;
+	expansion?: Expansion;
 	type?: MapType;
     region?: string;
 	markers: Marker[];

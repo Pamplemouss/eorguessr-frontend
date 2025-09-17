@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
-import { MapType } from "@/lib/types/MapType";
+import { MapType } from "@/lib/types/MapTypeEnum";
 import { Map } from "@/lib/types/Map";
-import { ExpansionType } from "@/lib/types/ExpansionType";
+import { Expansion } from "@/lib/types/ExpansionEnum";
 import dynamic from "next/dynamic";
 import MarkerFormList from "./MarkerFormList";
 
@@ -143,13 +143,13 @@ export default function AdminMapsPage() {
 
 					{/* Expansion */}
 					<select
-						value={form.expansion || ExpansionType.ARR}
+						value={form.expansion || Expansion.ARR}
 						onChange={(e) =>
-							setForm({ ...form, expansion: e.target.value as ExpansionType })
+							setForm({ ...form, expansion: e.target.value as Expansion })
 						}
 						className="border p-2"
 					>
-						{Object.values(ExpansionType).map((exp) => (
+						{Object.values(Expansion).map((exp) => (
 							<option key={exp} value={exp}>
 								{exp}
 							</option>
