@@ -8,14 +8,27 @@ import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
 
-const textIcon = (text: string, isHovered: boolean, isExit: boolean) =>
-	L.divIcon({
-		className: "", // prevent Leaflet’s default styles
-		html: `<span class="${isExit ? "text-[rgb(245,215,120)] text-border-yellow-900/80" : "text-cyan-200 text-border-black"} ${isHovered ? isExit ? "text-border-red-400/50" : "text-border-violet-900" : " "
-			} tracking-wide font-myriad-cond text-lg">${text}</span>`,
-		iconSize: [0, 0],
-		iconAnchor: [0, 0],
+function getTextIcon(text: string, isHovered: boolean, isExit: boolean) {
+	// Create a temporary span to measure text size
+	const span = document.createElement("span");
+	span.className =
+		"marker tracking-wide font-myriad-cond text-lg whitespace-nowrap inline-block";
+	span.style.position = "absolute";
+	span.style.visibility = "hidden";
+	span.innerText = text;
+	document.body.appendChild(span);
+
+	const width = span.offsetWidth;
+	const height = span.offsetHeight;
+	document.body.removeChild(span);
+
+	return L.divIcon({
+		className: `${isHovered ? "hovered" : ""} ${isExit ? "exit" : ""}`,
+		html: `<span class="marker tracking-wide font-myriad-cond text-lg whitespace-nowrap inline-block">${text}</span>`,
+		iconSize: [width, height],
+		iconAnchor: [width / 2, height / 2], // Center anchor
 	});
+}
 
 export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Map[] }) {
 	const defaultBounds: L.LatLngBoundsExpression = [[-100, -100], [100, 100]];
@@ -52,7 +65,7 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 						{/* Marker as styled text */}
 						<Marker
 							position={marker.latLng}
-							icon={textIcon(getMapName(marker.target), hoveredIdx === idx, isMapExit(form, getMapById(maps, marker.target)))}
+							icon={getTextIcon(getMapName(marker.target), hoveredIdx === idx, isMapExit(form, getMapById(maps, marker.target)))}
 							eventHandlers={{
 								mouseover: () => setHoveredIdx(idx),
 								mouseout: () => setHoveredIdx(null),
