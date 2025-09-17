@@ -10,25 +10,28 @@ const PolygonsEditor = () => {
     useEffect(() => {
         if (!map) return;
 
-        // Ajoute les contrôles Geoman
+
         (map as any).pm.addControls({
             position: "topleft",
-            drawCircle: false,
         });
 
-        // Événement création de polygone/marker
+
         map.on("pm:create", (e: any) => {
-            const latlngs = e.layer.getLatLngs();
-            const polygon: any[] = [];
+            if (e.shape === "Polygon") {
+                const latlngs = e.layer.getLatLngs();
+                const polygon: any[] = [];
 
-            // Convertit en format [lng, lat]
-            if (Array.isArray(latlngs[0])) {
-                latlngs[0].forEach((latlng: any) => {
-                    polygon.push([latlng.lat, latlng.lng]);
-                });
+                if (Array.isArray(latlngs[0])) {
+                    latlngs[0].forEach((latlng: any) => {
+                        polygon.push([latlng.lat, latlng.lng]);
+                    });
+                }
+
+                console.log("Polygon créé : " + JSON.stringify(polygon));
+            } else if (e.shape === "Circle") {
+                const center = e.layer.getLatLng();
+                console.log("Cercle créé, centre : " + JSON.stringify([center.lat, center.lng]));
             }
-
-            console.log("Polygon créé : " + JSON.stringify(polygon));
         });
     }, [map]);
 
