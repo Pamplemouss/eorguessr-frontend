@@ -1,0 +1,93 @@
+"use client";
+import { MapContainer, Marker, Polygon, ImageOverlay } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { Map } from "@/lib/types/Map";
+import React, { useState } from "react";
+import PolygonsEditor from "./PolygonsEditor";
+import { getMapById } from "@/lib/utils/getMapById";
+import { isMapExit } from "@/lib/utils/isMapExit";
+
+const textIcon = (text: string, isHovered: boolean, isExit: boolean) =>
+	L.divIcon({
+		className: "", // prevent Leaflet’s default styles
+		html: `<span class="${isExit ? "text-[rgb(245,215,120)] text-border-yellow-900/80" : "text-cyan-200 text-border-black"} ${isHovered ? isExit ? "text-border-red-400/50" : "text-border-violet-900" : " "
+			} tracking-wide font-myriad-cond text-lg">${text}</span>`,
+		iconSize: [0, 0],
+		iconAnchor: [0, 0],
+	});
+
+export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Map[] }) {
+	const defaultBounds: L.LatLngBoundsExpression = [[-100, -100], [100, 100]];
+
+	const specialBounds: Record<string, L.LatLngBoundsExpression> = {
+		"d05cc1fd-77f8-45d8-935a-8948e4c336f0": [[-110, -258], [110, 258]], // The Source
+		"24dafd75-1150-4a15-b2cc-31a9d3f1e228": [[-110, -196], [110, 196]], // The First
+	};
+
+	const bounds =
+		form.id && specialBounds[form.id] ? specialBounds[form.id] : defaultBounds;
+
+	const baseUrl = process.env.NEXT_PUBLIC_S3_BUCKET_URL || "";
+	const imageUrl = `${baseUrl}/maps/${form.imagePath}`;
+
+	const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+	// Helper to get map name from ID
+	const getMapName = (id: string) =>
+		getMapById(maps, id)?.name || "Unknown";
+	return (
+		<div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
+			<MapContainer
+				center={[0, 0]}
+				zoom={1}
+				className="h-full w-full"
+				crs={L.CRS.Simple}
+			>
+				{form.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
+				<PolygonsEditor />
+
+				{form.markers?.map((marker, idx) => (
+					<React.Fragment key={idx}>
+						{/* Marker as styled text */}
+						<Marker
+							position={marker.latLng}
+							icon={textIcon(getMapName(marker.target), hoveredIdx === idx, isMapExit(form, getMapById(maps, marker.target)))}
+							eventHandlers={{
+								mouseover: () => setHoveredIdx(idx),
+								mouseout: () => setHoveredIdx(null),
+							}}
+						/>
+
+						{/* Area polygon */}
+						{marker.geojson?.area && (
+							<Polygon
+								positions={marker.geojson.area}
+								pathOptions={{
+									stroke: false,
+									fillOpacity: hoveredIdx === idx ? 0.15 : 0,
+									fillColor: "white",
+								}}
+							/>
+						)}
+
+						{/* Hitbox polygon */}
+						{marker.geojson?.hitbox && (
+							<Polygon
+								positions={marker.geojson.hitbox}
+								pathOptions={{
+									color: "transparent",
+									fillOpacity: 0,
+								}}
+								eventHandlers={{
+									mouseover: () => setHoveredIdx(idx),
+									mouseout: () => setHoveredIdx(null),
+								}}
+							/>
+						)}
+					</React.Fragment>
+				))}
+			</MapContainer>
+		</div>
+	);
+}

@@ -1,19 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
-import { IMap } from "@/lib/models/MapModel";
 import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
 import { MapType } from "@/lib/types/MapType";
+import { Map } from "@/lib/types/Map";
 import { ExpansionType } from "@/lib/types/ExpansionType";
 import dynamic from "next/dynamic";
 import MarkerFormList from "./MarkerFormList";
 
-const MapEditor = dynamic(() => import("./MapEditor"), { ssr: false });
+const MapEditor = dynamic(() => import("./EditorMap"), { ssr: false });
 
 export default function AdminMapsPage() {
-	const [maps, setMaps] = useState<IMap[]>([]);
+	const [maps, setMaps] = useState<Map[]>([]);
 	const [selectedMapId, setSelectedMapId] = useState<string | null>(null);
 	const [search, setSearch] = useState("");
-	const [form, setForm] = useState<Partial<IMap>>(createEmptyMapForm());
+	const [form, setForm] = useState<Partial<Map>>(createEmptyMapForm());
 	const [isSaving, setIsSaving] = useState(false);
 
 	useEffect(() => {
@@ -39,12 +39,18 @@ export default function AdminMapsPage() {
 		if (!form.name) return alert("Le nom est requis !");
 		setIsSaving(true);
 
-		console.log("Saving form:", form);
+		// Ensure region is set for REGION maps
+		let formToSave = { ...form };
+		if (formToSave.type === MapType.REGION) {
+			formToSave.region = formToSave.id;
+		}
 
-		const res = await fetch(`/api/maps/${form.id}`, {
+		console.log("Saving form:", formToSave);
+
+		const res = await fetch(`/api/maps/${formToSave.id}`, {
 			method: "PUT",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(form),
+			body: JSON.stringify(formToSave),
 		});
 
 		const savedMap = await res.json();
@@ -165,6 +171,34 @@ export default function AdminMapsPage() {
 						))}
 					</select>
 
+					{/* Region Field */}
+					<select
+						value={
+							form.type === MapType.WORLD_MAP
+								? ""
+								: form.type === MapType.REGION
+									? form.id || ""
+									: form.region || ""
+						}
+						disabled={
+							form.type === MapType.WORLD_MAP ||
+							form.type === MapType.REGION
+						}
+						onChange={(e) =>
+							setForm({ ...form, region: e.target.value })
+						}
+						className="border p-2"
+					>
+						<option value="">Aucune région</option>
+						{maps
+							.filter((m) => m.type === MapType.REGION)
+							.map((region) => (
+								<option key={region.id} value={region.id}>
+									{region.name}
+								</option>
+							))}
+					</select>
+
 					<input
 						type="text"
 						placeholder="Image Path"
@@ -198,10 +232,11 @@ export default function AdminMapsPage() {
 				<MarkerFormList
 					markers={form.markers || []}
 					onChange={(markers) => setForm({ ...form, markers })}
+					maps={maps}
 				/>
 			</div>
 			<div className="w-full h-full flex items-center justify-center">{form && (
-				<MapEditor form={form} />
+				<MapEditor form={form} maps={maps} />
 			)}</div>
 		</div>
 	);

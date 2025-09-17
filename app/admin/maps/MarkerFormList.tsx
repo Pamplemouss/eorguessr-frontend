@@ -4,6 +4,7 @@ import React, { useState } from "react";
 interface MarkerFormListProps {
     markers: Marker[];
     onChange: (markers: Marker[]) => void;
+    maps: { id: string; name: string }[]; // Add this prop
 }
 
 const emptyMarker = (): Marker => ({
@@ -12,7 +13,7 @@ const emptyMarker = (): Marker => ({
     geojson: { area: [], hitbox: [] },
 });
 
-export default function MarkerFormList({ markers, onChange }: MarkerFormListProps) {
+export default function MarkerFormList({ markers, onChange, maps }: MarkerFormListProps) {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [draft, setDraft] = useState<Marker>(emptyMarker());
 
@@ -51,6 +52,9 @@ export default function MarkerFormList({ markers, onChange }: MarkerFormListProp
         setDraft(emptyMarker());
     };
 
+    // Helper to get map name from ID
+    const getMapName = (id: string) => maps.find(m => m.id === id)?.name || id;
+
     /** Conversion textarea → array */
     const parseTextarea = (text: string): [number, number][] => {
         try {
@@ -63,7 +67,7 @@ export default function MarkerFormList({ markers, onChange }: MarkerFormListProp
         }
         return [];
     };
-    console.log(markers);
+    
     return (
         <div className="p-4 border rounded max-w-md">
             <h3 className="text-lg mb-2">Markers</h3>
@@ -71,7 +75,7 @@ export default function MarkerFormList({ markers, onChange }: MarkerFormListProp
                 {markers.length === 0 && <li className="text-gray-500">Aucun marker.</li>}
                 {markers.map((marker, idx) => (
                     <li key={idx} className="mb-2 flex items-center gap-2">
-                        <span className="font-mono">{marker.target}</span>
+                        <span className="font-mono">{getMapName(marker.target)}</span>
                         <span className="text-xs text-gray-500">
                             [{marker.latLng[0]}, {marker.latLng[1]}]
                         </span>
@@ -98,13 +102,19 @@ export default function MarkerFormList({ markers, onChange }: MarkerFormListProp
             </ul>
 
             <div className="flex flex-col gap-2">
-                <input
-                    type="text"
-                    placeholder="Nom du marker"
+                {/* Target dropdown */}
+                <select
                     value={draft.target}
                     onChange={(e) => setDraft({ ...draft, target: e.target.value })}
                     className="border p-2"
-                />
+                >
+                    <option value="">Sélectionner la map cible</option>
+                    {maps.map((map) => (
+                        <option key={map.id} value={map.id}>
+                            {map.name}
+                        </option>
+                    ))}
+                </select>
                 <div className="flex gap-2">
                     <input
                         type="number"

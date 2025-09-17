@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import { IMap } from "@/lib/models/MapModel";
+import { Map } from "@/lib/types/Map";
 import { MapType } from "@/lib/types/MapType";
 
-export const createEmptyMapForm = (): Partial<IMap> => ({
+export const createEmptyMapForm = (): Partial<Map> => ({
     id: uuidv4(),
     name: "",
     type: MapType.MAP,

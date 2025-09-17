@@ -1,16 +1,8 @@
 import mongoose, { Schema, Document, model, Model } from 'mongoose';
 import { MapType } from '../types/MapType';
 import { Marker } from '../types/Marker';
+import { Map } from '../types/Map';
 
-export interface IMap extends Document {
-	id: string;
-	name: string;
-	expansion?: string;
-	type?: MapType;
-	markers: Marker[];
-	subAreas?: string[];
-	imagePath?: string;
-}
 
 const MarkerSchema = new Schema<Marker>({
 	target: { type: String, required: true },
@@ -21,7 +13,7 @@ const MarkerSchema = new Schema<Marker>({
 	},
 });
 
-const MapSchema: Schema<IMap> = new Schema({
+const MapSchema: Schema<Map> = new Schema({
 	id: { type: String, required: true, unique: true },
 	name: { type: String, required: true },
 	expansion: String,
@@ -30,10 +22,11 @@ const MapSchema: Schema<IMap> = new Schema({
 		enum: Object.values(MapType),
 		default: MapType.MAP,
 	},
+	region: String,
 	markers: [MarkerSchema],
 	subAreas: [String],
 	imagePath: String,
 });
 
-export const MapModel: Model<IMap> =
-	mongoose.models.Map || model<IMap>('Map', MapSchema);
+export const MapModel: Model<Map> =
+	mongoose.models.Map || model<Map>('Map', MapSchema);

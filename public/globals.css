@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-family: 'Myriad Pro Condensed';
+    src: url('/fonts/Myriad Pro Condensed.woff');
+    font-weight: 400;
+    font-display: swap;
+}
+
+.leaflet-container {
+    background-color: rgba(0, 0, 0, 0.5);
+}
