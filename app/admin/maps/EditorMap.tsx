@@ -84,18 +84,21 @@ export default function EditorMap({
 
 	return (
 		<div className="flex flex-col items-center gap-10 z-1000">
-			<button
-				className="m-2 p-2 bg-white border rounded shadow"
-				onClick={() => setShowPolygonsEditor(v => !v)}
-			>
-				{showPolygonsEditor ? "Masquer l'éditeur de polygones" : "Afficher l'éditeur de polygones"}
-			</button>
-			<button
-				className={`m-2 p-2 border rounded shadow ${dragMode ? "bg-blue-200" : "bg-white"}`}
-				onClick={() => setDragMode(v => !v)}
-			>
-				{dragMode ? "Désactiver le déplacement des markers" : "Activer le déplacement des markers"}
-			</button>
+			<div className="flex flex-col gap-2">
+				<button
+					className="p-2 bg-white border rounded shadow"
+					onClick={() => setShowPolygonsEditor(v => !v)}
+				>
+					{showPolygonsEditor ? "Masquer l'éditeur de polygones" : "Afficher l'éditeur de polygones"}
+				</button>
+				<button
+					className={`p-2 border rounded shadow ${dragMode ? "bg-blue-200" : "bg-white"}`}
+					onClick={() => setDragMode(v => !v)}
+				>
+					{dragMode ? "Désactiver le déplacement des markers" : "Activer le déplacement des markers"}
+				</button>
+			</div>
+
 			<div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
 				<MapContainer
 					center={[0, 0]}
