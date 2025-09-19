@@ -7,6 +7,7 @@ import { Expansion } from "@/lib/types/ExpansionEnum";
 import dynamic from "next/dynamic";
 import MarkerFormList from "./MarkerFormList";
 import { useLocale } from "@/app/components/contexts/LocalContextProvider";
+import isEqual from "lodash.isequal";
 
 const MapEditor = dynamic(() => import("./EditorMap"), { ssr: false });
 
@@ -18,6 +19,7 @@ export default function AdminMapsPage() {
 	const [form, setForm] = useState<Partial<Map>>(createEmptyMapForm());
 	const [isSaving, setIsSaving] = useState(false);
 	const [subareasEnabled, setSubareasEnabled] = useState((form.subAreas && form.subAreas.length > 0) || false);
+	const [isDirty, setIsDirty] = useState(false);
 
 	useEffect(() => {
 		fetch("/api/maps")
@@ -37,6 +39,16 @@ export default function AdminMapsPage() {
 	useEffect(() => {
 		setSubareasEnabled((form.subAreas && form.subAreas.length > 0) || false);
 	}, [form.id]);
+
+	// Track if form is dirty
+	useEffect(() => {
+		if (!selectedMapId) {
+			setIsDirty(true);
+			return;
+		}
+		const selectedMap = maps.find(m => m.id === selectedMapId);
+		setIsDirty(selectedMap ? !isEqual(form, selectedMap) : false);
+	}, [form, selectedMapId, maps]);
 
 	const filteredMaps = maps.filter((m) =>
 		(m.name["en"] || "").toLowerCase().includes(search.toLowerCase())
@@ -380,13 +392,18 @@ export default function AdminMapsPage() {
 
 					<div className="flex gap-2 mt-2">
 						<button
-							className="bg-blue-500 text-white px-4 py-2"
+							className="bg-blue-500 text-white px-4 py-2 flex items-center gap-2 relative"
 							onClick={handleSave}
 							disabled={isSaving}
 						>
+							{isDirty && !isSaving && (
+								<span
+									className="inline-block w-3 h-3 rounded-full bg-red-500 absolute -right-1.5 -top-1.5"
+									title="Des modifications non sauvegardées"
+								></span>
+							)}
 							{isSaving ? "Sauvegarde..." : "Sauvegarder"}
 						</button>
-
 						{selectedMapId && (
 							<button
 								className="bg-red-500 text-white px-4 py-2"
