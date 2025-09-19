@@ -8,28 +8,7 @@ import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
 import { useLocale } from "@/app/components/contexts/LocalContextProvider";
-
-function getTextIcon(text: string, isHovered: boolean, isExit: boolean) {
-	// Create a temporary span to measure text size
-	const span = document.createElement("span");
-	span.className =
-		"marker tracking-wide font-myriad-cond text-lg whitespace-nowrap inline-block";
-	span.style.position = "absolute";
-	span.style.visibility = "hidden";
-	span.innerText = text;
-	document.body.appendChild(span);
-
-	const width = span.offsetWidth;
-	const height = span.offsetHeight;
-	document.body.removeChild(span);
-
-	return L.divIcon({
-		className: `${isHovered ? "hovered" : ""} ${isExit ? "exit" : ""}`,
-		html: `<span class="marker tracking-wide font-myriad-cond text-lg whitespace-nowrap inline-block">${text}</span>`,
-		iconSize: [width, height],
-		iconAnchor: [width / 2, height / 2], // Center anchor
-	});
-}
+import { MapType } from "@/lib/types/MapTypeEnum"; // Add this import if not present
 
 export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Map[] }) {
 	const { locale } = useLocale();
@@ -48,14 +27,38 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 
 	const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-	// Helper to get map name from ID
-	const getMapName = (id: string) => {
-		const map = getMapById(maps, id);
-		if (!map) return "Unknown";
-		// Ensure locale is a valid key of MapName
-		return map.name[locale as keyof typeof map.name] || "Unknown";
-	};
-	
+	function getMarkerClass(isHovered: boolean, isDungeon: boolean, isExit: boolean) {
+		const classes = [];
+		if (isHovered) classes.push("hovered");
+		if (isDungeon) classes.push("dungeon");
+		if (isExit) classes.push("exit");
+		return classes.join(" ");
+	}
+
+	function getTextIcon(map: Map | undefined, isHovered: boolean) {
+		const text = map ? map.name[locale as keyof typeof map.name] || "Unknown" : "Unknown";
+		const isExit = map ? isMapExit(form, map) : false;
+
+		// Check if map is a dungeon
+		const isDungeon = map?.type === MapType.DUNGEON;
+
+		// Build HTML for icon
+		const html = `
+		<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center whitespace-nowrap marker tracking-wide font-myriad-cond text-lg">
+			${isDungeon ? `<img src="/map/dungeon_icon.webp" class="w-5 h-5 mr-1" />` : ""}
+			<span>${text}</span>
+		</div>
+		`;
+
+		return L.divIcon({
+			className: getMarkerClass(isHovered, isDungeon, isExit),
+			html,
+			iconSize: [0, 0],
+			iconAnchor: [0, 0],
+		});
+
+	}
+
 	return (
 		<div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
 			<MapContainer
@@ -72,7 +75,7 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 						{/* Marker as styled text */}
 						<Marker
 							position={marker.latLng}
-							icon={getTextIcon(getMapName(marker.target), hoveredIdx === idx, isMapExit(form, getMapById(maps, marker.target)))}
+							icon={getTextIcon(getMapById(maps, marker.target), hoveredIdx === idx)}
 							eventHandlers={{
 								mouseover: () => setHoveredIdx(idx),
 								mouseout: () => setHoveredIdx(null),

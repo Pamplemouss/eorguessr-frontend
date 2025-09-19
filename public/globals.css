@@ -33,3 +33,11 @@
 .leaflet-marker-icon:not(.exit).hovered .marker {
     @apply !text-border-violet-900;
 }
+
+.leaflet-marker-icon.dungeon .marker {
+    @apply !text-violet-200 text-border-violet-900/80;
+}
+
+.leaflet-marker-icon.dungeon.hovered .marker {
+    @apply !text-border-violet-600/70;
+}
