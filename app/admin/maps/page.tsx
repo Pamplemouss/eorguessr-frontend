@@ -424,8 +424,12 @@ export default function AdminMapsPage() {
 				/>
 			</div>
 			<div className="w-full h-full flex items-center justify-center">{form && (
-				<MapEditor form={form} maps={maps} />
-			)}</div>
+				<MapEditor
+					form={form}
+					maps={maps}
+					onMarkersChange={(markers) => setForm({ ...form, markers })}
+				/>
+)}</div>
 		</div>
 	);
 }

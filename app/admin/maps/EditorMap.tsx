@@ -8,10 +8,19 @@ import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
 import { useLocale } from "@/app/components/contexts/LocalContextProvider";
-import { MapType } from "@/lib/types/MapTypeEnum"; // Add this import if not present
+import { MapType } from "@/lib/types/MapTypeEnum";
+import { Marker as EorMarker } from "@/lib/types/Marker";
 import SubAreaControl from "./SubAreaControl";
 
-export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Map[] }) {
+export default function EditorMap({
+	form,
+	maps,
+	onMarkersChange,
+}: {
+	form: Partial<Map>;
+	maps: Map[];
+	onMarkersChange?: (markers: EorMarker[]) => void;
+}) {
 	const { locale } = useLocale();
 	const defaultBounds: L.LatLngBoundsExpression = [[-100, -100], [100, 100]];
 
@@ -28,6 +37,7 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 
 	const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 	const [showPolygonsEditor, setShowPolygonsEditor] = useState(true);
+	const [dragMode, setDragMode] = useState(false);
 
 	function getMarkerClass(isHovered: boolean, isDungeon: boolean, isExit: boolean) {
 		const classes = [];
@@ -61,6 +71,17 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 
 	}
 
+	// Handler to update marker position
+	function handleMarkerDrag(idx: number, newLatLng: [number, number]) {
+		if (!form.markers) return;
+		const updatedMarkers = form.markers.map((m, i) =>
+			i === idx ? { ...m, latLng: newLatLng } : m
+		);
+		if (onMarkersChange) {
+			onMarkersChange(updatedMarkers);
+		}
+	}
+
 	return (
 		<div className="flex flex-col items-center gap-10 z-1000">
 			<button
@@ -69,8 +90,13 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 			>
 				{showPolygonsEditor ? "Masquer l'éditeur de polygones" : "Afficher l'éditeur de polygones"}
 			</button>
+			<button
+				className={`m-2 p-2 border rounded shadow ${dragMode ? "bg-blue-200" : "bg-white"}`}
+				onClick={() => setDragMode(v => !v)}
+			>
+				{dragMode ? "Désactiver le déplacement des markers" : "Activer le déplacement des markers"}
+			</button>
 			<div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
-				{/* Toggle Button */}
 				<MapContainer
 					center={[0, 0]}
 					zoom={1}
@@ -88,9 +114,16 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 							<Marker
 								position={marker.latLng}
 								icon={getTextIcon(getMapById(maps, marker.target), hoveredIdx === idx)}
+								draggable={dragMode}
 								eventHandlers={{
 									mouseover: () => setHoveredIdx(idx),
 									mouseout: () => setHoveredIdx(null),
+									dragend: (e) => {
+										if (dragMode) {
+											const latlng = e.target.getLatLng();
+											handleMarkerDrag(idx, [latlng.lat, latlng.lng]);
+										}
+									},
 								}}
 							/>
 
