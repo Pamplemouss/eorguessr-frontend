@@ -21,6 +21,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-leaflet": "^4.2.1",
+    "react-leaflet-custom-control": "^1.5.0",
     "react-photo-sphere-viewer": "^6.2.3",
     "tailwindcss-text-border": "^1.0.4",
     "uuid": "^13.0.0"

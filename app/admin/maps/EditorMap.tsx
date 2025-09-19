@@ -9,6 +9,7 @@ import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
 import { useLocale } from "@/app/components/contexts/LocalContextProvider";
 import { MapType } from "@/lib/types/MapTypeEnum"; // Add this import if not present
+import SubAreaControl from "./SubAreaControl";
 
 export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Map[] }) {
 	const { locale } = useLocale();
@@ -67,8 +68,12 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 				className="h-full w-full"
 				crs={L.CRS.Simple}
 			>
+				
+				<SubAreaControl form={form} maps={maps} />
 				{form.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
 				<PolygonsEditor />
+
+
 
 				{form.markers?.map((marker, idx) => (
 					<React.Fragment key={idx}>

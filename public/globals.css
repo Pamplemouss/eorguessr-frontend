@@ -9,6 +9,10 @@
     font-display: swap;
 }
 
+.leaflet-top.leaflet-right .leaflet-control {
+    margin: 0px;
+}
+
 .leaflet-marker-icon .marker {
     display: flex;
     align-items: center;
