@@ -27,6 +27,7 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 	const imageUrl = `${baseUrl}/maps/${form.imagePath}`;
 
 	const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+	const [showPolygonsEditor, setShowPolygonsEditor] = useState(true);
 
 	function getMarkerClass(isHovered: boolean, isDungeon: boolean, isExit: boolean) {
 		const classes = [];
@@ -61,61 +62,68 @@ export default function EditorMap({ form, maps }: { form: Partial<Map>; maps: Ma
 	}
 
 	return (
-		<div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
-			<MapContainer
-				center={[0, 0]}
-				zoom={1}
-				className="h-full w-full"
-				crs={L.CRS.Simple}
+		<div className="flex flex-col items-center gap-10 z-1000">
+			<button
+				className="m-2 p-2 bg-white border rounded shadow"
+				onClick={() => setShowPolygonsEditor(v => !v)}
 			>
-				
-				<SubAreaControl form={form} maps={maps} />
-				{form.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
-				<PolygonsEditor />
+				{showPolygonsEditor ? "Masquer l'éditeur de polygones" : "Afficher l'éditeur de polygones"}
+			</button>
+			<div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
+				{/* Toggle Button */}
+				<MapContainer
+					center={[0, 0]}
+					zoom={1}
+					className="h-full w-full"
+					crs={L.CRS.Simple}
+				>
+					<SubAreaControl form={form} maps={maps} />
+					{form.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
+					{showPolygonsEditor && <PolygonsEditor visible={true} />}
+					{!showPolygonsEditor && <PolygonsEditor visible={false} />}
 
-
-
-				{form.markers?.map((marker, idx) => (
-					<React.Fragment key={idx}>
-						{/* Marker as styled text */}
-						<Marker
-							position={marker.latLng}
-							icon={getTextIcon(getMapById(maps, marker.target), hoveredIdx === idx)}
-							eventHandlers={{
-								mouseover: () => setHoveredIdx(idx),
-								mouseout: () => setHoveredIdx(null),
-							}}
-						/>
-
-						{/* Area polygon */}
-						{marker.geojson?.area && (
-							<Polygon
-								positions={marker.geojson.area}
-								pathOptions={{
-									stroke: false,
-									fillOpacity: hoveredIdx === idx ? 0.15 : 0,
-									fillColor: "white",
-								}}
-							/>
-						)}
-
-						{/* Hitbox polygon */}
-						{marker.geojson?.hitbox && (
-							<Polygon
-								positions={marker.geojson.hitbox}
-								pathOptions={{
-									color: "transparent",
-									fillOpacity: 0,
-								}}
+					{form.markers?.map((marker, idx) => (
+						<React.Fragment key={idx}>
+							{/* Marker as styled text */}
+							<Marker
+								position={marker.latLng}
+								icon={getTextIcon(getMapById(maps, marker.target), hoveredIdx === idx)}
 								eventHandlers={{
 									mouseover: () => setHoveredIdx(idx),
 									mouseout: () => setHoveredIdx(null),
 								}}
 							/>
-						)}
-					</React.Fragment>
-				))}
-			</MapContainer>
+
+							{/* Area polygon */}
+							{marker.geojson?.area && (
+								<Polygon
+									positions={marker.geojson.area}
+									pathOptions={{
+										stroke: false,
+										fillOpacity: hoveredIdx === idx ? 0.15 : 0,
+										fillColor: "white",
+									}}
+								/>
+							)}
+
+							{/* Hitbox polygon */}
+							{marker.geojson?.hitbox && (
+								<Polygon
+									positions={marker.geojson.hitbox}
+									pathOptions={{
+										color: "transparent",
+										fillOpacity: 0,
+									}}
+									eventHandlers={{
+										mouseover: () => setHoveredIdx(idx),
+										mouseout: () => setHoveredIdx(null),
+									}}
+								/>
+							)}
+						</React.Fragment>
+					))}
+				</MapContainer>
+			</div>
 		</div>
 	);
 }

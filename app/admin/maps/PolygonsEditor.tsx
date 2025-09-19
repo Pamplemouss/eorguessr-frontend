@@ -4,19 +4,28 @@ import { useMap } from "react-leaflet";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 
-const PolygonsEditor = () => {
+const PolygonsEditor = ({ visible }: { visible: boolean }) => {
     const map = useMap();
 
     useEffect(() => {
         if (!map) return;
 
+        if (visible) {
+            (map as any).pm.addControls({ position: "topleft" });
+        } else {
+            (map as any).pm.removeControls();
+        }
 
-        (map as any).pm.addControls({
-            position: "topleft",
-        });
+        // Cleanup on unmount
+        return () => {
+            (map as any).pm.removeControls();
+        };
+    }, [map, visible]);
 
+    useEffect(() => {
+        if (!map || !visible) return;
 
-        map.on("pm:create", (e: any) => {
+        const handleCreate = (e: any) => {
             if (e.shape === "Polygon") {
                 const latlngs = e.layer.getLatLngs();
                 const polygon: any[] = [];
@@ -32,10 +41,16 @@ const PolygonsEditor = () => {
                 const center = e.layer.getLatLng();
                 console.log("Cercle créé, centre : " + JSON.stringify([center.lat, center.lng]));
             }
-        });
-    }, [map]);
+        };
 
-    return null; // rien à afficher, c'est juste un hook qui étend la map
+        map.on("pm:create", handleCreate);
+
+        return () => {
+            map.off("pm:create", handleCreate);
+        };
+    }, [map, visible]);
+
+    return null;
 };
 
 export default PolygonsEditor;
