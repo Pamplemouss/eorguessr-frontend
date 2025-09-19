@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
 import { MapType } from "@/lib/types/MapTypeEnum";
 import { Map, MapName } from "@/lib/types/Map";
@@ -20,6 +20,8 @@ export default function AdminMapsPage() {
 	const [isSaving, setIsSaving] = useState(false);
 	const [subareasEnabled, setSubareasEnabled] = useState((form.subAreas && form.subAreas.length > 0) || false);
 	const [isDirty, setIsDirty] = useState(false);
+	const [changeMapOnMarkerClickEnabled, setChangeMapOnMarkerClickEnabled] = useState(false);
+	const isDirtyRef = useRef(isDirty);
 
 	useEffect(() => {
 		fetch("/api/maps")
@@ -49,6 +51,10 @@ export default function AdminMapsPage() {
 		const selectedMap = maps.find(m => m.id === selectedMapId);
 		setIsDirty(selectedMap ? !isEqual(form, selectedMap) : false);
 	}, [form, selectedMapId, maps]);
+
+	useEffect(() => {
+		isDirtyRef.current = isDirty;
+	}, [isDirty]);
 
 	const filteredMaps = maps.filter((m) =>
 		(m.name["en"] || "").toLowerCase().includes(search.toLowerCase())
@@ -140,6 +146,16 @@ export default function AdminMapsPage() {
 		[arr[index], arr[swapWith]] = [arr[swapWith], arr[index]];
 		setSubAreasSafe(arr);
 	}
+
+	const handleMarkerClick = (mapId: string) => {
+		if (mapId === selectedMapId) return;
+		if (isDirtyRef.current) {
+			if (!window.confirm("Des modifications non sauvegardées. Continuer et changer de map ?")) {
+				return;
+			}
+		}
+		setSelectedMapId(mapId);
+	};
 
 	return (
 		<div className="flex h-screen w-screen">
@@ -423,13 +439,27 @@ export default function AdminMapsPage() {
 					maps={maps}
 				/>
 			</div>
-			<div className="w-full h-full flex items-center justify-center">{form && (
-				<MapEditor
-					form={form}
-					maps={maps}
-					onMarkersChange={(markers) => setForm({ ...form, markers })}
-				/>
-)}</div>
+			<div className="w-full h-full flex flex-col items-center justify-center">
+				<div className="mb-2">
+					<button
+						className={`p-2 border rounded shadow ${changeMapOnMarkerClickEnabled ? "bg-blue-200" : "bg-white"}`}
+						onClick={() => setChangeMapOnMarkerClickEnabled(v => !v)}
+					>
+						{changeMapOnMarkerClickEnabled
+							? "Désactiver le changement de map au clic sur marker"
+							: "Activer le changement de map au clic sur marker"}
+					</button>
+				</div>
+				{form && (
+					<MapEditor
+						map={form as Map}
+						maps={maps}
+						onMarkersChange={(markers) => setForm({ ...form, markers })}
+						onMarkerClick={handleMarkerClick}
+						changeMapOnMarkerClickEnabled={changeMapOnMarkerClickEnabled}
+					/>
+				)}
+			</div>
 		</div>
 	);
 }

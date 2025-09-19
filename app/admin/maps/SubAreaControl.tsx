@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
-import { createRoot } from "react-dom/client"; // 👈 important
+import { createRoot } from "react-dom/client";
 import { Map } from "@/lib/types/Map";
 import { useLocale } from "@/app/components/contexts/LocalContextProvider";
 import { getMapById } from "@/lib/utils/getMapById";
@@ -10,9 +10,10 @@ import { getMapById } from "@/lib/utils/getMapById";
 type Props = {
     form: Partial<Map>;
     maps: Map[];
+    onSubAreaClick?: (subAreaId: string) => void;
 };
 
-function SubAreaContent({ form, maps, locale }: Props & { locale: string }) {
+function SubAreaContent({ form, maps, locale, onSubAreaClick }: Props & { locale: string }) {
     return (
         <div className="text-right text-slate-100 p-2 pl-7 text-sm relative">
             {form.subAreas?.map((subAreaId) => {
@@ -24,6 +25,9 @@ function SubAreaContent({ form, maps, locale }: Props & { locale: string }) {
                     <div
                         key={subAreaId}
                         className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => {
+                            if (!active && onSubAreaClick) onSubAreaClick(subAreaId);
+                        }}
                     >
                         <div className="absolute z-10 top-0 w-full h-full left-0 blur-sm bg-gradient-to-l from-black/20 via-black/20 via-20% to-transparent"></div>
                         <span className="grow z-20 text-shadow shadow-black">{name}</span>
@@ -39,7 +43,7 @@ function SubAreaContent({ form, maps, locale }: Props & { locale: string }) {
     );
 }
 
-export default function SubAreaControl({ form, maps }: Props) {
+export default function SubAreaControl({ form, maps, onSubAreaClick }: Props) {
     const map = useMap();
     const { locale } = useLocale();
 
@@ -52,7 +56,14 @@ export default function SubAreaControl({ form, maps }: Props) {
             const div = L.DomUtil.create("div");
             const root = createRoot(div);
 
-            root.render(<SubAreaContent form={form} maps={maps} locale={locale} />);
+            root.render(
+                <SubAreaContent
+                    form={form}
+                    maps={maps}
+                    locale={locale}
+                    onSubAreaClick={onSubAreaClick}
+                />
+            );
 
             return div;
         };
@@ -62,7 +73,7 @@ export default function SubAreaControl({ form, maps }: Props) {
         return () => {
             control.remove();
         };
-    }, [form, maps, locale, map]);
+    }, [form, maps, locale, map, onSubAreaClick]);
 
     return null;
 }
