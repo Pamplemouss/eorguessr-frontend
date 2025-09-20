@@ -3,7 +3,7 @@ import { MapContainer, Marker, Polygon, ImageOverlay } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Map } from "@/lib/types/Map";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
@@ -80,11 +80,14 @@ export default function EditorMap({
     }
 
     // Handler for subarea click
-    function handleSubAreaClick(subAreaId: string) {
-        if (changeMapOnMarkerClickEnabled && onMarkerClick && subAreaId) {
-            onMarkerClick(subAreaId);
-        }
-    }
+    const handleSubAreaClick = useCallback(
+        (subAreaId: string) => {
+            if (changeMapOnMarkerClickEnabled && onMarkerClick && subAreaId) {
+                onMarkerClick(subAreaId);
+            }
+        },
+        [changeMapOnMarkerClickEnabled, onMarkerClick]
+    );
 
     return (
         <div className="flex flex-col items-center gap-10 z-1000">
