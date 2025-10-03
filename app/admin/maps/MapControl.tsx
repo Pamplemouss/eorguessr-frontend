@@ -7,6 +7,30 @@ import { createRoot } from 'react-dom/client';
 import { FaLongArrowAltUp, FaMinus, FaPlus } from "react-icons/fa";
 import { Map } from "@/lib/types/Map";
 
+function ControlButton({
+    onClick,
+    title,
+    children,
+    disabled = false,
+}: {
+    onClick: () => void;
+    title: string;
+    children: React.ReactNode;
+    disabled?: boolean;
+}) {
+    return (
+        <div
+            onClick={() => {
+                if (!disabled) onClick();
+            }}
+            title={title}
+            className={`m-0.5 -rotate-90 overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] outline-t outline-yellow-300/50 ${disabled ? "opacity-40" : "cursor-pointer hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033]"}`}
+        >
+            {children}
+        </div>
+    );
+}
+
 function ZoomSliderComponent({
     leafletMap,
     currentMap,
@@ -64,31 +88,28 @@ function ZoomSliderComponent({
 
     return (
         <div className="flex rotate-90 origin-top-left absolute -top-1 left-5">
-            <div
+            <ControlButton
                 onClick={handleAncestorMapClick}
-                className={`p-0.5 -rotate-90 ${!hasParentMap ? "opacity-30" : "cursor-pointer"}`}
                 title={hasAncestorMap ? "Go to ancestor map" : "No ancestor map"}
+                disabled={!hasAncestorMap}
             >
-                <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033] outline-t outline-yellow-300/50">
-                    <div className="w-3 h-2.5 shadow-sm shadow-yellow-200 border border-black m-auto"></div>
-                </div>
-            </div>
-            <div
+                <div className="w-3 h-2.5 shadow-sm shadow-yellow-200 border border-black m-auto"></div>
+            </ControlButton>
+            <ControlButton
                 onClick={handleParentMapClick}
-                className={`p-0.5 -rotate-90 ${!hasParentMap ? "opacity-30" : "cursor-pointer"}`}
                 title={hasParentMap ? "Go to parent map" : "No parent map"}
+                disabled={!hasParentMap}
             >
-                <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033] outline-t outline-yellow-300/50">
-                    <FaLongArrowAltUp className="text-slate-900 text-[1rem] z-10" />
-                    <FaLongArrowAltUp className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
-                </div>
-            </div>
-            <div onClick={() => leafletMap.zoomIn()} className="cursor-pointer p-0.5 -rotate-90">
-                <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033] outline-t outline-yellow-300/50">
-                    <FaPlus className="text-slate-900 text-[1rem] z-10" />
-                    <FaPlus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
-                </div>
-            </div>
+                <FaLongArrowAltUp className="text-slate-900 text-[1rem] z-10" />
+                <FaLongArrowAltUp className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
+            </ControlButton>
+            <ControlButton
+                onClick={() => leafletMap.zoomIn()}
+                title="Zoom in"
+            >
+                <FaPlus className="text-slate-900 text-[1rem] z-10" />
+                <FaPlus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
+            </ControlButton>
             <input
                 type="range"
                 min="0"
@@ -97,12 +118,13 @@ function ZoomSliderComponent({
                 onChange={handleOnChange}
                 className="zoom-slider w-24 4k:w-40 rotate-180 origin-center accent-red-300"
             />
-            <div onClick={() => leafletMap.zoomOut()} className="cursor-pointer p-0.5 -rotate-90">
-                <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033]">
-                    <FaMinus className="text-slate-900 text-[1rem] z-10" />
-                    <FaMinus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
-                </div>
-            </div>
+            <ControlButton
+                onClick={() => leafletMap.setZoom(leafletMap.getMinZoom())}
+                title="Zoom to min"
+            >
+                <FaMinus className="text-slate-900 text-[1rem] z-10" />
+                <FaMinus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
+            </ControlButton>
         </div>
     );
 }
