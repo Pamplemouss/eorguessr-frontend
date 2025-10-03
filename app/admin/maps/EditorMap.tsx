@@ -140,7 +140,9 @@ export default function EditorMap({
                     minZoom={1}
                     className="h-full w-full"
                     crs={L.CRS.Simple}
-                    key={map.id} // Add this to force re-render when map changes
+                    key={map.id}
+                    attributionControl={false}
+                    zoomControl={false}
                 >
                     <SubAreaControl
                         form={map}
