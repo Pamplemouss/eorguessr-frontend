@@ -10,7 +10,7 @@ import { useLocale } from "@/app/components/contexts/LocalContextProvider";
 import { useMap } from "@/app/components/contexts/MapContextProvider";
 import isEqual from "lodash.isequal";
 
-const MapEditor = dynamic(() => import("./MapEor"), { ssr: false });
+const MapEor = dynamic(() => import("./MapEor"), { ssr: false });
 
 export default function AdminMapsPage() {
     const { locale, setLocale } = useLocale();
@@ -274,7 +274,7 @@ export default function AdminMapsPage() {
                                 .filter((m) => m.id !== draft.id) // Exclude current map
                                 .map((parentMap) => (
                                     <option key={parentMap.id} value={parentMap.id}>
-                                        {parentMap.name?.en || "Sans nom"} ({parentMap.type})
+                                        {parentMap.name?.en || "Sans nom"}
                                     </option>
                                 ))}
                         </select>
@@ -424,7 +424,7 @@ export default function AdminMapsPage() {
             </div>
             <div className="w-full h-full flex flex-col items-center justify-center">
                 {draft && (
-                    <MapEditor />
+                    <MapEor />
                 )}
             </div>
         </div>

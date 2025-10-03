@@ -7,30 +7,34 @@ import { createRoot } from 'react-dom/client';
 import { FaLongArrowAltUp, FaMinus, FaPlus } from "react-icons/fa";
 
 function ZoomSliderComponent({
-    map,
+    leafletMap,
+    currentMap,
+    setCurrentMapById
 }: {
-    map: L.Map;
+    leafletMap: L.Map;
+    currentMap: any;
+    setCurrentMapById: (id: string | null) => void;
 }) {
-    const { currentMap, setCurrentMapById } = useMap();
-    const [value, setValue] = useState(invLerp(map.getMinZoom(), map.getMaxZoom(), map.getZoom()) * 100);
+    const [value, setValue] = useState(invLerp(leafletMap.getMinZoom(), leafletMap.getMaxZoom(), leafletMap.getZoom()) * 100);
 
     const handleOnChange = (event: any) => {
         setValue(event.target.value);
-        map.setZoom(lerp(map.getMinZoom(), map.getMaxZoom(), event.target.value / 100), { animate: false });
+        leafletMap.setZoom(lerp(leafletMap.getMinZoom(), leafletMap.getMaxZoom(), event.target.value / 100), { animate: false });
     };
 
     useEffect(() => {
         const onZoom = () => {
-            setValue(invLerp(map.getMinZoom(), map.getMaxZoom(), map.getZoom()) * 100);
+            setValue(invLerp(leafletMap.getMinZoom(), leafletMap.getMaxZoom(), leafletMap.getZoom()) * 100);
         };
 
-        map.on('zoom', onZoom);
+        leafletMap.on('zoom', onZoom);
         return () => {
-            map.off('zoom', onZoom);
+            leafletMap.off('zoom', onZoom);
         };
-    }, [map]);
+    }, [leafletMap]);
 
     const hasParentMap = currentMap?.parentMap;
+    console.log("Current map parent:", currentMap);
 
     const handleParentMapClick = () => {
         if (hasParentMap) {
@@ -50,7 +54,7 @@ function ZoomSliderComponent({
                     <FaLongArrowAltUp className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
                 </div>
             </div>
-            <div onClick={() => map.zoomIn()} className="cursor-pointer p-0.5 -rotate-90">
+            <div onClick={() => leafletMap.zoomIn()} className="cursor-pointer p-0.5 -rotate-90">
                 <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033] outline-t outline-yellow-300/50">
                     <FaPlus className="text-slate-900 text-[1rem] z-10" />
                     <FaPlus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
@@ -64,7 +68,7 @@ function ZoomSliderComponent({
                 onChange={handleOnChange}
                 className="zoom-slider w-24 4k:w-40 rotate-180 origin-center accent-red-300"
             />
-            <div onClick={() => map.zoomOut()} className="cursor-pointer p-0.5 -rotate-90">
+            <div onClick={() => leafletMap.zoomOut()} className="cursor-pointer p-0.5 -rotate-90">
                 <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033]">
                     <FaMinus className="text-slate-900 text-[1rem] z-10" />
                     <FaMinus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
@@ -75,7 +79,8 @@ function ZoomSliderComponent({
 }
 
 export default function MapControl() {
-    const map = useLeafletMap();
+    const { currentMap, setCurrentMapById } = useMap();
+    const leafletMap = useLeafletMap();
 
     useEffect(() => {
         const control = new L.Control({ position: "topleft" });
@@ -90,7 +95,11 @@ export default function MapControl() {
             // Create React root and render component
             const root = createRoot(div);
             root.render(
-                <ZoomSliderComponent map={map} />
+                <ZoomSliderComponent 
+                    leafletMap={leafletMap}
+                    currentMap={currentMap}
+                    setCurrentMapById={setCurrentMapById}
+                />
             );
 
             // Store root for cleanup
@@ -106,12 +115,12 @@ export default function MapControl() {
             }
         };
 
-        map.addControl(control);
+        leafletMap.addControl(control);
 
         return () => {
-            map.removeControl(control);
+            leafletMap.removeControl(control);
         };
-    }, [map]);
+    }, [leafletMap]);
 
     return null;
 }
