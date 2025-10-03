@@ -1,9 +1,9 @@
 "use client";
-import { MapContainer, Marker, Polygon, ImageOverlay } from "react-leaflet";
+import { MapContainer, Marker, Polygon, ImageOverlay, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Map } from "@/lib/types/Map";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
@@ -12,21 +12,21 @@ import { MapType } from "@/lib/types/MapTypeEnum";
 import { Marker as EorMarker } from "@/lib/types/Marker";
 import SubAreaControl from "./SubAreaControl";
 
+
+
 export default function EditorMap({
     map,
     maps,
     onMarkersChange,
     onMarkerClick,
-    changeMapOnMarkerClickEnabled,
 }: {
     map: Map;
     maps: Map[];
     onMarkersChange?: (markers: EorMarker[]) => void;
     onMarkerClick?: (mapId: string) => void;
-    changeMapOnMarkerClickEnabled?: boolean;
 }) {
     const { locale } = useLocale();
-    const defaultBounds: L.LatLngBoundsExpression = [[-100, -100], [100, 100]];
+    const defaultBounds: L.LatLngBoundsExpression = [[-119.5, -119.5], [119.5, 119.5]];
 
     const specialBounds: Record<string, L.LatLngBoundsExpression> = {
         "d05cc1fd-77f8-45d8-935a-8948e4c336f0": [[-110, -258], [110, 258]], // The Source
@@ -35,13 +35,31 @@ export default function EditorMap({
 
     const bounds =
         map.id && specialBounds[map.id] ? specialBounds[map.id] : defaultBounds;
+    
+    // Calculate maxBounds as bounds + 30 on each side
+    const boundsArray = Array.isArray(bounds) ? bounds : [bounds.getSouthWest(), bounds.getNorthEast()];
+    // Ensure southWest and northEast are always LatLngTuple (array of [number, number])
+    const toLatLngTuple = (latLng: L.LatLng | L.LatLngTuple): [number, number] =>
+        Array.isArray(latLng)
+            ? [latLng[0], latLng[1]]
+            : [latLng.lat, latLng.lng];
+
+    const southWest = toLatLngTuple(boundsArray[0]);
+    const northEast = toLatLngTuple(boundsArray[1]);
+    
+    const maxBounds: L.LatLngBoundsExpression = [
+        [southWest[0] - 30, southWest[1] - 30], // Southwest corner - 30
+        [northEast[0] + 30, northEast[1] + 30]   // Northeast corner + 30
+    ];
+
 
     const baseUrl = process.env.NEXT_PUBLIC_S3_BUCKET_URL || "";
     const imageUrl = `${baseUrl}/maps/${map.imagePath}`;
 
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-    const [showPolygonsEditor, setShowPolygonsEditor] = useState(true);
+    const [showPolygonsEditor, setShowPolygonsEditor] = useState(false);
     const [dragMode, setDragMode] = useState(false);
+    const [changeMapOnMarkerClickEnabled, setChangeMapOnMarkerClickEnabled] = useState(false);
 
     function getMarkerClass(isHovered: boolean, isDungeon: boolean, isExit: boolean) {
         const classes = [];
@@ -93,6 +111,14 @@ export default function EditorMap({
         <div className="flex flex-col items-center gap-10 z-1000">
             <div className="flex flex-col gap-2">
                 <button
+                        className={`p-2 border rounded shadow ${changeMapOnMarkerClickEnabled ? "bg-blue-200" : "bg-white"}`}
+                        onClick={() => setChangeMapOnMarkerClickEnabled(v => !v)}
+                    >
+                        {changeMapOnMarkerClickEnabled
+                            ? "Désactiver le changement de map au clic sur marker"
+                            : "Activer le changement de map au clic sur marker"}
+                    </button>
+                <button
                     className="p-2 bg-white border rounded shadow"
                     onClick={() => setShowPolygonsEditor(v => !v)}
                 >
@@ -108,10 +134,13 @@ export default function EditorMap({
 
             <div className="border rounded aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-xl">
                 <MapContainer
+                    maxBounds={maxBounds}
                     center={[0, 0]}
                     zoom={1}
+                    minZoom={1}
                     className="h-full w-full"
                     crs={L.CRS.Simple}
+                    key={map.id} // Add this to force re-render when map changes
                 >
                     <SubAreaControl
                         form={map}

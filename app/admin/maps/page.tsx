@@ -20,7 +20,6 @@ export default function AdminMapsPage() {
 	const [isSaving, setIsSaving] = useState(false);
 	const [subareasEnabled, setSubareasEnabled] = useState((form.subAreas && form.subAreas.length > 0) || false);
 	const [isDirty, setIsDirty] = useState(false);
-	const [changeMapOnMarkerClickEnabled, setChangeMapOnMarkerClickEnabled] = useState(false);
 	const isDirtyRef = useRef(isDirty);
 
 	useEffect(() => {
@@ -440,23 +439,12 @@ export default function AdminMapsPage() {
 				/>
 			</div>
 			<div className="w-full h-full flex flex-col items-center justify-center">
-				<div className="mb-2">
-					<button
-						className={`p-2 border rounded shadow ${changeMapOnMarkerClickEnabled ? "bg-blue-200" : "bg-white"}`}
-						onClick={() => setChangeMapOnMarkerClickEnabled(v => !v)}
-					>
-						{changeMapOnMarkerClickEnabled
-							? "Désactiver le changement de map au clic sur marker"
-							: "Activer le changement de map au clic sur marker"}
-					</button>
-				</div>
 				{form && (
 					<MapEditor
 						map={form as Map}
 						maps={maps}
 						onMarkersChange={(markers) => setForm({ ...form, markers })}
 						onMarkerClick={handleMarkerClick}
-						changeMapOnMarkerClickEnabled={changeMapOnMarkerClickEnabled}
 					/>
 				)}
 			</div>
