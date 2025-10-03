@@ -1,19 +1,22 @@
 import { invLerp, lerp } from "@/lib/utils/lerp";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMap as useLeafletMap } from "react-leaflet";
 import { useMap } from "@/app/components/contexts/MapContextProvider";
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
 import { FaLongArrowAltUp, FaMinus, FaPlus } from "react-icons/fa";
+import { Map } from "@/lib/types/Map";
 
 function ZoomSliderComponent({
     leafletMap,
     currentMap,
-    setCurrentMapById
+    setCurrentMapById,
+    maps,
 }: {
     leafletMap: L.Map;
     currentMap: any;
     setCurrentMapById: (id: string | null) => void;
+    maps: Map[];
 }) {
     const [value, setValue] = useState(invLerp(leafletMap.getMinZoom(), leafletMap.getMaxZoom(), leafletMap.getZoom()) * 100);
 
@@ -34,7 +37,20 @@ function ZoomSliderComponent({
     }, [leafletMap]);
 
     const hasParentMap = currentMap?.parentMap;
-    console.log("Current map parent:", currentMap);
+    const hasAncestorMap = useMemo(() => {
+        // Find the oldest ancestor map
+        let ancestorId = currentMap?.parentMap;
+        let ancestorMap = null;
+        while (ancestorId) {
+            ancestorMap = maps.find((map) => map.id === ancestorId);
+            if (ancestorMap) {
+                ancestorId = ancestorMap.parentMap;
+            } else {
+                break;
+            }
+        }
+        return ancestorMap?.id || false;
+    }, [currentMap, maps]);
 
     const handleParentMapClick = () => {
         if (hasParentMap) {
@@ -42,8 +58,21 @@ function ZoomSliderComponent({
         }
     };
 
+    const handleAncestorMapClick = () => {
+        if (hasAncestorMap) setCurrentMapById(hasAncestorMap);
+    };
+
     return (
         <div className="flex rotate-90 origin-top-left absolute -top-1 left-5">
+            <div
+                onClick={handleAncestorMapClick}
+                className={`p-0.5 -rotate-90 ${!hasParentMap ? "opacity-30" : "cursor-pointer"}`}
+                title={hasAncestorMap ? "Go to ancestor map" : "No ancestor map"}
+            >
+                <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033] outline-t outline-yellow-300/50">
+                    <div className="w-3 h-2.5 shadow-sm shadow-yellow-200 border border-black m-auto"></div>
+                </div>
+            </div>
             <div
                 onClick={handleParentMapClick}
                 className={`p-0.5 -rotate-90 ${!hasParentMap ? "opacity-30" : "cursor-pointer"}`}
@@ -79,7 +108,7 @@ function ZoomSliderComponent({
 }
 
 export default function MapControl() {
-    const { currentMap, setCurrentMapById } = useMap();
+    const { currentMap, setCurrentMapById, maps } = useMap();
     const leafletMap = useLeafletMap();
 
     useEffect(() => {
@@ -95,10 +124,11 @@ export default function MapControl() {
             // Create React root and render component
             const root = createRoot(div);
             root.render(
-                <ZoomSliderComponent 
+                <ZoomSliderComponent
                     leafletMap={leafletMap}
                     currentMap={currentMap}
                     setCurrentMapById={setCurrentMapById}
+                    maps={maps}
                 />
             );
 
