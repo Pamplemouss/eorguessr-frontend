@@ -16,6 +16,7 @@ type Props = {
 function SubAreaContent({ form, maps, locale, onSubAreaClick }: Props & { locale: string }) {
     return (
         <div className="text-right text-slate-100 p-2 pl-7 text-sm relative">
+            <div className="absolute z-10 top-0 w-full h-full left-0 blur-sm bg-gradient-to-l from-black/40 via-black/40 via-20% to-transparent"></div>
             {form.subAreas?.map((subAreaId) => {
                 const subMap = getMapById(maps, subAreaId);
                 const name = subMap?.name[locale as keyof typeof subMap.name] || "Unknown";
@@ -29,7 +30,7 @@ function SubAreaContent({ form, maps, locale, onSubAreaClick }: Props & { locale
                             if (!active && onSubAreaClick) onSubAreaClick(subAreaId);
                         }}
                     >
-                        <div className="absolute z-10 top-0 w-full h-full left-0 blur-sm bg-gradient-to-l from-black/20 via-black/20 via-20% to-transparent"></div>
+                        
                         <span className="grow z-20 text-shadow shadow-black">{name}</span>
                         {active ? (
                             <div className="z-20 m-auto h-2.5 w-2.5 bg-yellow-400 rounded-full shadow-[0_0_2px_2px] shadow-yellow-500/80 border border-yellow-100/50"></div>
