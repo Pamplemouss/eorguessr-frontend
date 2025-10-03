@@ -3,30 +3,25 @@ import { MapContainer, Marker, Polygon, ImageOverlay } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Map } from "@/lib/types/Map";
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useState } from "react";
 import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
 import { useLocale } from "@/app/components/contexts/LocalContextProvider";
 import { MapType } from "@/lib/types/MapTypeEnum";
-import { Marker as EorMarker } from "@/lib/types/Marker";
 import SubAreaControl from "./SubAreaControl";
 import MapControl from "./MapControl";
+import { useMap } from "@/app/components/contexts/MapContextProvider";
 
-
-
-export default function EditorMap({
-    map,
-    maps,
-    onMarkersChange,
-    onMarkerClick,
-}: {
-    map: Map;
-    maps: Map[];
-    onMarkersChange?: (markers: EorMarker[]) => void;
-    onMarkerClick?: (mapId: string) => void;
-}) {
+export default function MapEor() {
+    const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+    const [showPolygonsEditor, setShowPolygonsEditor] = useState(false);
+    const [dragMode, setDragMode] = useState(false);
+    const { currentMap, maps, setCurrentMap, setCurrentMapById, changeMapEnabled, setChangeMapEnabled } = useMap();
     const { locale } = useLocale();
+
+    if (!currentMap) return <div>Loading...</div>;
+
     const defaultBounds: L.LatLngBoundsExpression = [[-119.5, -119.5], [119.5, 119.5]];
 
     const specialBounds: Record<string, L.LatLngBoundsExpression> = {
@@ -35,7 +30,7 @@ export default function EditorMap({
     };
 
     const bounds =
-        map.id && specialBounds[map.id] ? specialBounds[map.id] : defaultBounds;
+        currentMap.id && specialBounds[currentMap.id] ? specialBounds[currentMap.id] : defaultBounds;
 
     // Calculate maxBounds as bounds + 30 on each side
     const boundsArray = Array.isArray(bounds) ? bounds : [bounds.getSouthWest(), bounds.getNorthEast()];
@@ -55,12 +50,7 @@ export default function EditorMap({
 
 
     const baseUrl = process.env.NEXT_PUBLIC_S3_BUCKET_URL || "";
-    const imageUrl = `${baseUrl}/maps/${map.imagePath}`;
-
-    const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-    const [showPolygonsEditor, setShowPolygonsEditor] = useState(false);
-    const [dragMode, setDragMode] = useState(false);
-    const [changeMapOnMarkerClickEnabled, setChangeMapOnMarkerClickEnabled] = useState(false);
+    const imageUrl = `${baseUrl}/maps/${currentMap.imagePath}`;
 
     function getMarkerClass(isHovered: boolean, isDungeon: boolean, isExit: boolean) {
         const classes = [];
@@ -71,8 +61,9 @@ export default function EditorMap({
     }
 
     function getTextIcon(markerMap: Map | undefined, isHovered: boolean) {
+        if (!currentMap) return;
         const text = markerMap ? markerMap.name[locale as keyof typeof markerMap.name] || "Unknown" : "Unknown";
-        const isExit = markerMap ? isMapExit(map, markerMap) : false;
+        const isExit = markerMap ? isMapExit(currentMap, markerMap) : false;
         const isDungeon = markerMap?.type === MapType.DUNGEON;
         const html = `
         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center whitespace-nowrap marker tracking-wide font-myriad-cond text-lg">
@@ -89,33 +80,22 @@ export default function EditorMap({
     }
 
     function handleMarkerDrag(idx: number, newLatLng: [number, number]) {
-        if (!map.markers) return;
-        const updatedMarkers = map.markers.map((m, i) =>
+        if (!currentMap || !currentMap.markers) return;
+        const updatedMarkers = currentMap.markers.map((m, i) =>
             i === idx ? { ...m, latLng: newLatLng } : m
         );
-        if (onMarkersChange) {
-            onMarkersChange(updatedMarkers);
-        }
+        const updatedMap = { ...currentMap, markers: updatedMarkers };
+        setCurrentMap(updatedMap);
     }
-
-    // Handler for subarea click
-    const handleSubAreaClick = useCallback(
-        (subAreaId: string) => {
-            if (changeMapOnMarkerClickEnabled && onMarkerClick && subAreaId) {
-                onMarkerClick(subAreaId);
-            }
-        },
-        [changeMapOnMarkerClickEnabled, onMarkerClick]
-    );
 
     return (
         <div className="flex flex-col items-center gap-10 z-1000">
             <div className="flex flex-col gap-2">
                 <button
-                    className={`p-2 border rounded shadow ${changeMapOnMarkerClickEnabled ? "bg-blue-200" : "bg-white"}`}
-                    onClick={() => setChangeMapOnMarkerClickEnabled(v => !v)}
+                    className={`p-2 border rounded shadow ${changeMapEnabled ? "bg-blue-200" : "bg-white"}`}
+                    onClick={() => setChangeMapEnabled(!changeMapEnabled)}
                 >
-                    {changeMapOnMarkerClickEnabled
+                    {changeMapEnabled
                         ? "Désactiver le changement de map au clic sur marker"
                         : "Activer le changement de map au clic sur marker"}
                 </button>
@@ -140,7 +120,7 @@ export default function EditorMap({
                     center={[0, 0]}
                     className="h-full w-full"
                     crs={L.CRS.Simple}
-                    key={map.id}
+                    key={currentMap.id}
                     attributionControl={false}
                     zoomControl={false}
                     scrollWheelZoom={true}
@@ -151,15 +131,11 @@ export default function EditorMap({
                     maxZoom={5}
                 >
                     <MapControl />
-                    <SubAreaControl
-                        form={map}
-                        maps={maps}
-                        onSubAreaClick={handleSubAreaClick}
-                    />
-                    {map.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
+                    <SubAreaControl />
+                    {currentMap.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
                     <PolygonsEditor visible={showPolygonsEditor} />
 
-                    {map.markers?.map((marker, idx) => (
+                    {currentMap.markers?.map((marker, idx) => (
                         <React.Fragment key={idx}>
                             <Marker
                                 position={marker.latLng}
@@ -175,8 +151,8 @@ export default function EditorMap({
                                         }
                                     },
                                     click: () => {
-                                        if (changeMapOnMarkerClickEnabled && onMarkerClick && marker.target) {
-                                            onMarkerClick(marker.target);
+                                        if (changeMapEnabled && marker.target) {
+                                            setCurrentMapById(marker.target);
                                         }
                                     },
                                 }}

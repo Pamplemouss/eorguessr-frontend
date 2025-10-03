@@ -1,12 +1,6 @@
 import { Marker } from "@/lib/types/Marker";
-import { Map } from "@/lib/types/Map";
 import React, { useState } from "react";
-
-interface MarkerFormListProps {
-    markers: Marker[];
-    onChange: (markers: Marker[]) => void;
-    maps: Map[];
-}
+import { useMap } from "@/app/components/contexts/MapContextProvider";
 
 const emptyMarker = (): Marker => ({
     target: "",
@@ -14,20 +8,23 @@ const emptyMarker = (): Marker => ({
     geojson: { area: [], hitbox: [] },
 });
 
-export default function MarkerFormList({ markers, onChange, maps }: MarkerFormListProps) {
+export default function MarkerFormList() {
+    const { currentMap, setCurrentMap, maps } = useMap();
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [draft, setDraft] = useState<Marker>(emptyMarker());
 
+    if (!currentMap) return;
+
     const handleEdit = (idx: number) => {
         setEditingIndex(idx);
-        setDraft(markers[idx]);
+        setDraft(currentMap.markers[idx]);
     };
 
     const handleDelete = (idx: number) => {
         if (window.confirm("Supprimer ce marker ?")) {
-            const newMarkers = markers.slice();
+            const newMarkers = currentMap.markers.slice();
             newMarkers.splice(idx, 1);
-            onChange(newMarkers);
+            setCurrentMap({ ...currentMap, markers: newMarkers });
             setEditingIndex(null);
         }
     };
@@ -37,13 +34,13 @@ export default function MarkerFormList({ markers, onChange, maps }: MarkerFormLi
             alert("Le nom du marker est requis !");
             return;
         }
-        const newMarkers = markers.slice();
+        const newMarkers = currentMap.markers.slice();
         if (editingIndex !== null) {
             newMarkers[editingIndex] = draft;
         } else {
             newMarkers.push({ ...draft });
         }
-        onChange(newMarkers);
+        setCurrentMap({ ...currentMap, markers: newMarkers });
         setEditingIndex(null);
         setDraft(emptyMarker());
     };
@@ -90,8 +87,8 @@ export default function MarkerFormList({ markers, onChange, maps }: MarkerFormLi
         <div className="p-4 border rounded max-w-md">
             <h3 className="text-lg mb-2">Markers</h3>
             <ul className="mb-4">
-                {markers.length === 0 && <li className="text-gray-500">Aucun marker.</li>}
-                {markers.map((marker, idx) => (
+                {currentMap.markers.length === 0 && <li className="text-gray-500">Aucun marker.</li>}
+                {currentMap.markers.map((marker, idx) => (
                     <li key={idx} className="mb-2 flex items-center gap-2">
                         <span className="font-mono">{getMapName(marker.target)}</span>
                         <span className="text-xs text-gray-500">

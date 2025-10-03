@@ -9,7 +9,7 @@ type LocaleContextType = {
 
 const LocaleContext = createContext<LocaleContextType>({
     locale: "en",
-    setLocale: () => {},
+    setLocale: () => { },
 });
 
 export function LocaleProvider({ children, defaultLang = "en" }: { children: ReactNode; defaultLang?: string }) {

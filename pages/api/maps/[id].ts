@@ -1,11 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]";
 import { connectToDB } from '@/lib/mongoose';
 import { MapModel } from '@/lib/models/MapModel';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    await connectToDB();
-    const { id } = req.query;
+    const session = await getServerSession(req, res, authOptions);
+    
+    if (!session) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
 
+    await connectToDB();
+
+    const { id } = req.query;
     try {
         if (req.method === 'GET') {
             const map = await MapModel.findOne({ id });

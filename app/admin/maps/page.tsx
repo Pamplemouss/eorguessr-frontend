@@ -7,109 +7,79 @@ import { Expansion } from "@/lib/types/ExpansionEnum";
 import dynamic from "next/dynamic";
 import MarkerFormList from "./MarkerFormList";
 import { useLocale } from "@/app/components/contexts/LocalContextProvider";
+import { useMap } from "@/app/components/contexts/MapContextProvider";
 import isEqual from "lodash.isequal";
 
-const MapEditor = dynamic(() => import("./EditorMap"), { ssr: false });
+const MapEditor = dynamic(() => import("./MapEor"), { ssr: false });
 
 export default function AdminMapsPage() {
     const { locale, setLocale } = useLocale();
-    const [maps, setMaps] = useState<Map[]>([]);
-    const [selectedMapId, setSelectedMapId] = useState<string | null>(null);
+    const { maps, saveMap, deleteMap, isLoading, error, setCurrentMapById, currentMap } = useMap();
     const [search, setSearch] = useState("");
-    const [form, setForm] = useState<Partial<Map>>(createEmptyMapForm());
-    const [isSaving, setIsSaving] = useState(false);
-    const [subareasEnabled, setSubareasEnabled] = useState((form.subAreas && form.subAreas.length > 0) || false);
+    const [draft, setDraft] = useState<Partial<Map>>(createEmptyMapForm());
+    const [subareasEnabled, setSubareasEnabled] = useState((draft.subAreas && draft.subAreas.length > 0) || false);
     const [isDirty, setIsDirty] = useState(false);
-    const isDirtyRef = useRef(isDirty);
 
     useEffect(() => {
-        fetch("/api/maps")
-            .then((res) => res.json())
-            .then((data) => setMaps(data));
-    }, []);
-
-    useEffect(() => {
-        if (selectedMapId) {
-            const m = maps.find((m) => m.id === selectedMapId);
-            if (m) setForm(m);
+        if (currentMap?.id) {
+            const m = maps.find((m) => m.id === currentMap.id);
+            if (m) setDraft(m);
         } else {
-            setForm(createEmptyMapForm());
+            setDraft(createEmptyMapForm());
         }
-    }, [selectedMapId]);
+    }, [currentMap?.id, maps]);
 
     useEffect(() => {
-        setSubareasEnabled((form.subAreas && form.subAreas.length > 0) || false);
-    }, [form.id]);
-
-    // Track if form is dirty
-    useEffect(() => {
-        if (!selectedMapId) {
-            setIsDirty(true);
-            return;
-        }
-        const selectedMap = maps.find(m => m.id === selectedMapId);
-        setIsDirty(selectedMap ? !isEqual(form, selectedMap) : false);
-    }, [form, selectedMapId, maps]);
-
-    useEffect(() => {
-        isDirtyRef.current = isDirty;
-    }, [isDirty]);
+        setSubareasEnabled((draft.subAreas && draft.subAreas.length > 0) || false);
+    }, [draft.id]);
 
     const filteredMaps = maps.filter((m) =>
         (m.name["en"] || "").toLowerCase().includes(search.toLowerCase())
     );
 
+    useEffect(() => {
+        setIsDirty(currentMap ? !isEqual(draft, currentMap) : false);
+    }, [draft, currentMap?.id, maps, currentMap?.markers]);
+
     const handleSave = async () => {
-        if (!form.name) return alert("Le nom est requis !");
-        setIsSaving(true);
+        if (!draft.name) return alert("Le nom est requis !");
 
-        // Ensure region is set for REGION maps
-        let formToSave = { ...form };
-        if (formToSave.type === MapType.REGION) {
-            formToSave.region = formToSave.id;
+        try {
+            const savedMap = await saveMap(draft);
+            if (!currentMap?.id) {
+                setCurrentMapById(savedMap.id);
+            }
+        } catch (err) {
+            alert("Erreur lors de la sauvegarde");
+            console.error("Save error:", err);
         }
-
-        console.log("Saving form:", formToSave);
-
-        const res = await fetch(`/api/maps/${formToSave.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formToSave),
-        });
-
-        const savedMap = await res.json();
-
-        if (selectedMapId) {
-            setMaps(maps.map((m) => (m.id === savedMap.id ? savedMap : m)));
-        } else {
-            setMaps([...maps, savedMap]);
-            setSelectedMapId(savedMap.id);
-        }
-
-        setIsSaving(false);
     };
 
     const handleDelete = async () => {
-        if (!selectedMapId) return;
+        if (!currentMap?.id) return;
         if (!confirm("Supprimer cette map ?")) return;
 
-        await fetch(`/api/maps/${selectedMapId}`, { method: "DELETE" });
-        setMaps(maps.filter((m) => m.id !== selectedMapId));
-        setSelectedMapId(null);
-        setForm(createEmptyMapForm());
+        try {
+            await deleteMap(currentMap.id);
+            setCurrentMapById(null);
+            setDraft(createEmptyMapForm());
+        } catch (err) {
+            alert("Erreur lors de la suppression");
+            console.error("Delete error:", err);
+        }
     };
 
     function updateMapNameLocale(
         locale: keyof MapName,
         value: string
     ) {
-        setForm({
-            ...form,
+        setDraft({
+            ...draft,
             name: {
-                en: form.name?.en ?? "",
-                fr: form.name?.fr ?? "",
-                de: form.name?.de ?? "",
-                ja: form.name?.ja ?? "",
+                en: draft.name?.en ?? "",
+                fr: draft.name?.fr ?? "",
+                de: draft.name?.de ?? "",
+                ja: draft.name?.ja ?? "",
                 [locale]: value
             }
         });
@@ -118,25 +88,25 @@ export default function AdminMapsPage() {
     // Helper to update subareas and ensure uniqueness
     function setSubAreasSafe(newSubAreas: string[]) {
         const unique = Array.from(new Set(newSubAreas));
-        setForm({ ...form, subAreas: unique });
+        setDraft({ ...draft, subAreas: unique });
     }
 
     // Helper to add self map if not present
     function ensureSelfInSubAreas() {
-        if (!form.id) return;
-        if (!form.subAreas?.includes(form.id)) {
-            setSubAreasSafe([form.id, ...(form.subAreas || []).filter(id => id !== form.id)]);
+        if (!draft.id) return;
+        if (!draft.subAreas?.includes(draft.id)) {
+            setSubAreasSafe([draft.id, ...(draft.subAreas || []).filter(id => id !== draft.id)]);
         }
     }
 
     // Helper to remove self map
     function removeSelfFromSubAreas() {
-        setSubAreasSafe((form.subAreas || []).filter(id => id !== form.id));
+        setSubAreasSafe((draft.subAreas || []).filter(id => id !== draft.id));
     }
 
     // Helper to move subarea up/down
     function moveSubArea(index: number, direction: "up" | "down") {
-        const arr = [...(form.subAreas || [])];
+        const arr = [...(draft.subAreas || [])];
         if (
             (direction === "up" && index === 0) ||
             (direction === "down" && index === arr.length - 1)
@@ -146,20 +116,18 @@ export default function AdminMapsPage() {
         setSubAreasSafe(arr);
     }
 
-    const handleMarkerClick = (mapId: string) => {
-        if (mapId === selectedMapId) return;
-        if (isDirtyRef.current) {
-            if (!window.confirm("Des modifications non sauvegardées. Continuer et changer de map ?")) {
-                return;
-            }
-        }
-        setSelectedMapId(mapId);
-    };
-
     return (
         <div className="flex h-screen w-screen">
             <div className="p-4 flex flex-col gap-4">
                 <h1 className="text-2xl mb-4">Admin - Maps</h1>
+                
+                {/* Error display */}
+                {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        {error}
+                    </div>
+                )}
+                
                 {/* Langue */}
                 <div className="flex items-center gap-2 mb-4">
                     <label className="font-bold">Langue:</label>
@@ -174,6 +142,7 @@ export default function AdminMapsPage() {
                         <option value="ja">日本語</option>
                     </select>
                 </div>
+                
                 {/* Recherche + bouton créer */}
                 <div className="flex items-center gap-2 mb-4">
                     <input
@@ -184,7 +153,7 @@ export default function AdminMapsPage() {
                     />
                     <button
                         className="bg-green-500 text-white px-4 py-2"
-                        onClick={() => setSelectedMapId(null)}
+                        onClick={() => setCurrentMapById(null)}
                     >
                         + Créer une nouvelle map
                     </button>
@@ -199,9 +168,9 @@ export default function AdminMapsPage() {
                             {filteredMaps.map((m) => (
                                 <li
                                     key={m.id}
-                                    className={`p-2 cursor-pointer hover:bg-gray-100 ${selectedMapId === m.id ? "bg-gray-200" : ""
+                                    className={`p-2 cursor-pointer hover:bg-gray-100 ${currentMap?.id === m.id ? "bg-gray-200" : ""
                                         }`}
-                                    onClick={() => setSelectedMapId(m.id)}
+                                    onClick={() => setCurrentMapById(m.id)}
                                 >
                                     <span className="font-bold">{m.name?.en || "Sans nom"}</span>{" "}
                                     {m.type && (
@@ -216,13 +185,13 @@ export default function AdminMapsPage() {
                 {/* Formulaire CRUD */}
                 <div className="border p-4 rounded max-w-md flex flex-col gap-2">
                     <h2 className="text-xl">
-                        {selectedMapId ? "Éditer la map" : "Créer une map"}
+                        {currentMap?.id ? "Éditer la map" : "Créer une map"}
                     </h2>
 
                     {/* UUID affiché */}
                     <input
                         type="text"
-                        value={form.id || ""}
+                        value={draft.id || ""}
                         disabled
                         className="border p-2 bg-gray-100 text-gray-500"
                     />
@@ -233,28 +202,28 @@ export default function AdminMapsPage() {
                         <input
                             type="text"
                             placeholder="Nom (EN)"
-                            value={form.name?.en || ""}
+                            value={draft.name?.en || ""}
                             onChange={(e) => updateMapNameLocale("en", e.target.value)}
                             className="border p-2"
                         />
                         <input
                             type="text"
                             placeholder="Nom (FR)"
-                            value={form.name?.fr || ""}
+                            value={draft.name?.fr || ""}
                             onChange={(e) => updateMapNameLocale("fr", e.target.value)}
                             className="border p-2"
                         />
                         <input
                             type="text"
                             placeholder="Nom (DE)"
-                            value={form.name?.de || ""}
+                            value={draft.name?.de || ""}
                             onChange={(e) => updateMapNameLocale("de", e.target.value)}
                             className="border p-2"
                         />
                         <input
                             type="text"
                             placeholder="Nom (JA)"
-                            value={form.name?.ja || ""}
+                            value={draft.name?.ja || ""}
                             onChange={(e) => updateMapNameLocale("ja", e.target.value)}
                             className="border p-2"
                         />
@@ -262,9 +231,9 @@ export default function AdminMapsPage() {
 
                     {/* Expansion */}
                     <select
-                        value={form.expansion || Expansion.ARR}
+                        value={draft.expansion || Expansion.ARR}
                         onChange={(e) =>
-                            setForm({ ...form, expansion: e.target.value as Expansion })
+                            setDraft({ ...draft, expansion: e.target.value as Expansion })
                         }
                         className="border p-2"
                     >
@@ -277,9 +246,9 @@ export default function AdminMapsPage() {
 
                     {/* Map Type */}
                     <select
-                        value={form.type || MapType.MAP}
+                        value={draft.type || MapType.MAP}
                         onChange={(e) =>
-                            setForm({ ...form, type: e.target.value as MapType })
+                            setDraft({ ...draft, type: e.target.value as MapType })
                         }
                         className="border p-2"
                     >
@@ -294,15 +263,15 @@ export default function AdminMapsPage() {
                     <div className="flex flex-col gap-1">
                         <label className="font-bold">Carte parente:</label>
                         <select
-                            value={form.parentMap || ""}
+                            value={draft.parentMap || ""}
                             onChange={(e) =>
-                                setForm({ ...form, parentMap: e.target.value || null })
+                                setDraft({ ...draft, parentMap: e.target.value || null })
                             }
                             className="border p-2"
                         >
                             <option value="">Aucune carte parente</option>
                             {maps
-                                .filter((m) => m.id !== form.id) // Exclude current map
+                                .filter((m) => m.id !== draft.id) // Exclude current map
                                 .map((parentMap) => (
                                     <option key={parentMap.id} value={parentMap.id}>
                                         {parentMap.name?.en || "Sans nom"} ({parentMap.type})
@@ -314,18 +283,18 @@ export default function AdminMapsPage() {
                     {/* Region Field */}
                     <select
                         value={
-                            form.type === MapType.WORLD_MAP
+                            draft.type === MapType.WORLD_MAP
                                 ? ""
-                                : form.type === MapType.REGION
-                                    ? form.id || ""
-                                    : form.region || ""
+                                : draft.type === MapType.REGION
+                                    ? draft.id || ""
+                                    : draft.region || ""
                         }
                         disabled={
-                            form.type === MapType.WORLD_MAP ||
-                            form.type === MapType.REGION
+                            draft.type === MapType.WORLD_MAP ||
+                            draft.type === MapType.REGION
                         }
                         onChange={(e) =>
-                            setForm({ ...form, region: e.target.value })
+                            setDraft({ ...draft, region: e.target.value })
                         }
                         className="border p-2"
                     >
@@ -361,7 +330,7 @@ export default function AdminMapsPage() {
                             <>
                                 {/* Subareas List with reorder/remove */}
                                 <ul className="mb-2">
-                                    {(form.subAreas || []).map((id, idx) => {
+                                    {(draft.subAreas || []).map((id, idx) => {
                                         const map = maps.find(m => m.id === id);
                                         return (
                                             <li key={id} className="flex items-center gap-2 mb-1">
@@ -373,14 +342,14 @@ export default function AdminMapsPage() {
                                                     title="Monter"
                                                 >↑</button>
                                                 <button
-                                                    disabled={idx === (form.subAreas?.length || 1) - 1}
+                                                    disabled={idx === (draft.subAreas?.length || 1) - 1}
                                                     onClick={() => moveSubArea(idx, "down")}
                                                     className="px-2"
                                                     title="Descendre"
                                                 >↓</button>
                                                 <button
                                                     onClick={() => {
-                                                        if (id !== form.id) setSubAreasSafe((form.subAreas || []).filter(sid => sid !== id));
+                                                        if (id !== draft.id) setSubAreasSafe((draft.subAreas || []).filter(sid => sid !== id));
                                                     }}
                                                     className="px-2 text-red-500"
                                                     title="Retirer"
@@ -395,16 +364,16 @@ export default function AdminMapsPage() {
                                 </label>
                                 <select
                                     multiple
-                                    value={(form.subAreas || []).filter(id => id !== form.id)}
+                                    value={(draft.subAreas || []).filter(id => id !== draft.id)}
                                     onChange={e => {
                                         const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
-                                        const newSubAreas = [form.id as string, ...selected];
+                                        const newSubAreas = [draft.id as string, ...selected];
                                         setSubAreasSafe(newSubAreas);
                                     }}
                                     className="border p-2 h-32"
                                 >
                                     {maps
-                                        .filter(m => m.id !== form.id)
+                                        .filter(m => m.id !== draft.id)
                                         .map(m => (
                                             <option key={m.id} value={m.id}>
                                                 {m.name?.en || "Sans nom"}
@@ -418,8 +387,8 @@ export default function AdminMapsPage() {
                     <input
                         type="text"
                         placeholder="Image Path"
-                        value={form.imagePath || ""}
-                        onChange={(e) => setForm({ ...form, imagePath: e.target.value })}
+                        value={draft.imagePath || ""}
+                        onChange={(e) => setDraft({ ...draft, imagePath: e.target.value })}
                         className="border p-2"
                     />
 
@@ -427,20 +396,21 @@ export default function AdminMapsPage() {
                         <button
                             className="bg-blue-500 text-white px-4 py-2 flex items-center gap-2 relative"
                             onClick={handleSave}
-                            disabled={isSaving}
+                            disabled={isLoading}
                         >
-                            {isDirty && !isSaving && (
+                            {isDirty && !isLoading && (
                                 <span
                                     className="inline-block w-3 h-3 rounded-full bg-red-500 absolute -right-1.5 -top-1.5"
                                     title="Des modifications non sauvegardées"
                                 ></span>
                             )}
-                            {isSaving ? "Sauvegarde..." : "Sauvegarder"}
+                            {isLoading ? "Sauvegarde..." : "Sauvegarder"}
                         </button>
-                        {selectedMapId && (
+                        {currentMap?.id && (
                             <button
                                 className="bg-red-500 text-white px-4 py-2"
                                 onClick={handleDelete}
+                                disabled={isLoading}
                             >
                                 Supprimer
                             </button>
@@ -450,20 +420,11 @@ export default function AdminMapsPage() {
 
             </div>
             <div>
-                <MarkerFormList
-                    markers={form.markers || []}
-                    onChange={(markers) => setForm({ ...form, markers })}
-                    maps={maps}
-                />
+                <MarkerFormList />
             </div>
             <div className="w-full h-full flex flex-col items-center justify-center">
-                {form && (
-                    <MapEditor
-                        map={form as Map}
-                        maps={maps}
-                        onMarkersChange={(markers) => setForm({ ...form, markers })}
-                        onMarkerClick={handleMarkerClick}
-                    />
+                {draft && (
+                    <MapEditor />
                 )}
             </div>
         </div>

@@ -1,11 +1,17 @@
 import { invLerp, lerp } from "@/lib/utils/lerp";
 import { useEffect, useState } from "react";
-import { useMap } from "react-leaflet";
+import { useMap as useLeafletMap } from "react-leaflet";
+import { useMap } from "@/app/components/contexts/MapContextProvider";
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
-import { FaMinus, FaPlus } from "react-icons/fa";
+import { FaLongArrowAltUp, FaMinus, FaPlus } from "react-icons/fa";
 
-function ZoomSliderComponent({ map }: { map: L.Map }) {
+function ZoomSliderComponent({
+    map,
+}: {
+    map: L.Map;
+}) {
+    const { currentMap, setCurrentMapById } = useMap();
     const [value, setValue] = useState(invLerp(map.getMinZoom(), map.getMaxZoom(), map.getZoom()) * 100);
 
     const handleOnChange = (event: any) => {
@@ -24,8 +30,26 @@ function ZoomSliderComponent({ map }: { map: L.Map }) {
         };
     }, [map]);
 
+    const hasParentMap = currentMap?.parentMap;
+
+    const handleParentMapClick = () => {
+        if (hasParentMap) {
+            setCurrentMapById(currentMap.parentMap!);
+        }
+    };
+
     return (
         <div className="flex rotate-90 origin-top-left absolute -top-1 left-5">
+            <div
+                onClick={handleParentMapClick}
+                className={`p-0.5 -rotate-90 ${!hasParentMap ? "opacity-30" : "cursor-pointer"}`}
+                title={hasParentMap ? "Go to parent map" : "No parent map"}
+            >
+                <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033] outline-t outline-yellow-300/50">
+                    <FaLongArrowAltUp className="text-slate-900 text-[1rem] z-10" />
+                    <FaLongArrowAltUp className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
+                </div>
+            </div>
             <div onClick={() => map.zoomIn()} className="cursor-pointer p-0.5 -rotate-90">
                 <div className="overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033] outline-t outline-yellow-300/50">
                     <FaPlus className="text-slate-900 text-[1rem] z-10" />
@@ -51,7 +75,7 @@ function ZoomSliderComponent({ map }: { map: L.Map }) {
 }
 
 export default function MapControl() {
-    const map = useMap();
+    const map = useLeafletMap();
 
     useEffect(() => {
         const control = new L.Control({ position: "topleft" });
@@ -65,7 +89,9 @@ export default function MapControl() {
 
             // Create React root and render component
             const root = createRoot(div);
-            root.render(<ZoomSliderComponent map={map} />);
+            root.render(
+                <ZoomSliderComponent map={map} />
+            );
 
             // Store root for cleanup
             (div as any)._reactRoot = root;

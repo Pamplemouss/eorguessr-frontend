@@ -1,19 +1,9 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-declare module "next-auth" {
-    interface Session {
-        user: {
-            id?: string;
-            image?: string | null;
-        };
-    }
-}
+const ADMIN_PASSWORD = process.env.NEXTAUTH_ADMIN_PASSWORD as string;
 
-// Get your admin password from environment variable
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD as string;
-
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -32,8 +22,10 @@ export default NextAuth({
         strategy: "jwt"
     },
     callbacks: {
-        async redirect({ url, baseUrl }) {
+        async redirect({ baseUrl }) {
             return `${baseUrl}/admin/maps`;
         },
     }
-});
+};
+
+export default NextAuth(authOptions);
