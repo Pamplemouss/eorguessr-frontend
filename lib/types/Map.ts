@@ -16,6 +16,7 @@ export interface Map {
     type?: MapType;
     region?: string;
     markers: Marker[];
+    parentMap: string | null;
     subAreas?: string[];
     imagePath?: string;
 }

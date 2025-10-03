@@ -29,6 +29,7 @@ const MapSchema: Schema<Map> = new Schema({
 	},
 	region: String,
 	markers: [MarkerSchema],
+	parentMap: { type: String, default: null },
 	subAreas: [String],
 	imagePath: String,
 });
