@@ -359,8 +359,7 @@ export default function AdminMapsPage() {
 												>↓</button>
 												<button
 													onClick={() => {
-														if (id === form.id) removeSelfFromSubAreas();
-														else setSubAreasSafe((form.subAreas || []).filter(sid => sid !== id));
+														if (id !== form.id) setSubAreasSafe((form.subAreas || []).filter(sid => sid !== id));
 													}}
 													className="px-2 text-red-500"
 													title="Retirer"
@@ -378,9 +377,7 @@ export default function AdminMapsPage() {
 									value={(form.subAreas || []).filter(id => id !== form.id)}
 									onChange={e => {
 										const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
-										const newSubAreas = form.id && form.subAreas?.includes(form.id)
-											? [form.id, ...selected]
-											: selected;
+										const newSubAreas = [form.id as string, ...selected];
 										setSubAreasSafe(newSubAreas);
 									}}
 									className="border p-2 h-32"
