@@ -32,6 +32,7 @@ const MapSchema: Schema<Map> = new Schema({
 	parentMap: { type: String, default: null },
 	subAreas: [String],
 	imagePath: String,
+	size: { type: { x: Number, y: Number }, required: true },
 });
 
 export const MapModel: Model<Map> =

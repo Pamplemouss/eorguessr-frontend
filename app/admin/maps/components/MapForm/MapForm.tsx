@@ -11,6 +11,7 @@ import MapFormSubareas from './MapFormSubareas';
 import MapFormImagePath from './MapFormImagePath';
 import MapFormActions from './MapFormActions';
 import MapFormId from './MapFormId';
+import MapFormSize from './MapFormSize';
 
 const MapForm = () => {
     const { maps, currentMap } = useMap();
@@ -24,6 +25,7 @@ const MapForm = () => {
             <MapFormName />
             <MapFormExpansion />
             <MapFormType />
+            <MapFormSize />
             <MapFormParent />
             <MapFormRegion />
             <MapFormSubareas />

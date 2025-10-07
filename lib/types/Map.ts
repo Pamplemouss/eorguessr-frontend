@@ -19,4 +19,8 @@ export interface Map {
     parentMap: string | null;
     subAreas?: string[];
     imagePath?: string;
+    size: {
+        x: number;
+        y: number;
+    }
 }
