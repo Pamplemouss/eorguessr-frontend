@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { Map } from "@/lib/types/Map";
-import { MapType } from "@/lib/types/MapTypeEnum";
-import { Expansion } from "../types/ExpansionEnum";
+import { MapType } from "@/lib/types/MapType";
+import { Expansion } from "../types/Expansion";
 
 export const createEmptyMapForm = (): Map => ({
     id: uuidv4(),

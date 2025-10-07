@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
 import { useLocale } from "@/app/providers/LocalContextProvider";
-import { MapType } from "@/lib/types/MapTypeEnum";
+import { MapType } from "@/lib/types/MapType";
 import { useMap } from "@/app/providers/MapContextProvider";
 import MapControl from "./MapControl";
 import SubAreaControl from "./SubAreaControl";

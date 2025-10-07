@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
-import { MapType } from "@/lib/types/MapTypeEnum";
+import { MapType } from "@/lib/types/MapType";
 import { Map, MapName } from "@/lib/types/Map";
-import { Expansion } from "@/lib/types/ExpansionEnum";
+import { Expansion } from "@/lib/types/Expansion";
 import MarkerFormList from "../../components/admin/maps/components/MarkerFormList";
 import { useLocale } from "@/app/providers/LocalContextProvider";
 import { useMap } from "@/app/providers/MapContextProvider";

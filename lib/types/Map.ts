@@ -1,6 +1,6 @@
-import { MapType } from './MapTypeEnum';
+import { MapType } from './MapType';
 import { Marker } from '../types/Marker';
-import { Expansion } from './ExpansionEnum';
+import { Expansion } from './Expansion';
 
 export interface MapName {
     en: string;
