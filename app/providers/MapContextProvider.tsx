@@ -86,6 +86,11 @@ export function MapProvider({ children }: { children: ReactNode }) {
                 formToSave.region = formToSave.id;
             }
 
+            // Ensure specialBounds is null if not a WORLD_MAP
+            if (formToSave.type !== "WORLD_MAP") {
+                formToSave.specialBounds = undefined;
+            }
+
             const response = await fetch(`/api/maps/${formToSave.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },

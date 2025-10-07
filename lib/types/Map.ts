@@ -19,6 +19,7 @@ export interface Map {
     parentMap: string | null;
     subAreas?: string[];
     imagePath?: string;
+    specialBounds?: L.LatLngBoundsExpression;
     size: {
         x: number;
         y: number;

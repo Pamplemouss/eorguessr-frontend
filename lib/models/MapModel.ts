@@ -32,6 +32,7 @@ const MapSchema: Schema<Map> = new Schema({
 	parentMap: { type: String, default: null },
 	subAreas: [String],
 	imagePath: String,
+	specialBounds: { type: [[Number]], default: null },
 	size: { type: { x: Number, y: Number }, required: true },
 });
 
