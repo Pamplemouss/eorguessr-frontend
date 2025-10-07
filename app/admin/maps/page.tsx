@@ -3,7 +3,7 @@
 import MapEor from "../../components/MapEor/MapEor";
 import MapList from "./components/MapList";
 import AdminLocaleSelector from "./components/AdminLocaleSelector";
-import MapForm from "./components/MapForm";
+import MapForm from "./components/MapForm/MapForm";
 import AdminMapError from "./components/AdminMapError";
 
 export default function AdminMapsPage() {

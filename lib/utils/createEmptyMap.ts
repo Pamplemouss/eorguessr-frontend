@@ -3,7 +3,7 @@ import { Map } from "@/lib/types/Map";
 import { MapType } from "@/lib/types/MapType";
 import { Expansion } from "../types/Expansion";
 
-export const createEmptyMapForm = (): Map => ({
+export const createEmptyMap = (): Map => ({
     id: uuidv4(),
     name: { en: "", fr: "", de: "", ja: "" },
     type: MapType.MAP,

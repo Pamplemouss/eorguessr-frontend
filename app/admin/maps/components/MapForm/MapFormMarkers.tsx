@@ -8,7 +8,7 @@ const emptyMarker = (): Marker => ({
     geojson: { area: [], hitbox: [] },
 });
 
-export default function MarkerFormList() {
+export default function MapFormMarkers() {
     const { currentMap, setCurrentMap, maps } = useMap();
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [draft, setDraft] = useState<Marker>(emptyMarker());

@@ -1,8 +1,9 @@
 import { useMap } from '@/app/providers/MapContextProvider';
+import { createEmptyMap } from '@/lib/utils/createEmptyMap';
 import React, { useState } from 'react'
 
 const MapList = () => {
-    const { maps, currentMap, setCurrentMapById } = useMap();
+    const { maps, currentMap, setCurrentMapById, setCurrentMap } = useMap();
     const [search, setSearch] = useState("");
     const filteredMaps = maps.filter((m) =>
         (m.name["en"] || "").toLowerCase().includes(search.toLowerCase())
@@ -19,7 +20,7 @@ const MapList = () => {
                 />
                 <button
                     className="bg-green-500 text-white px-4 py-2"
-                    onClick={() => setCurrentMapById(null)}
+                    onClick={() => setCurrentMap(createEmptyMap())}
                 >
                     + Créer une nouvelle map
                 </button>

@@ -2,17 +2,17 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Map } from "@/lib/types/Map";
-import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
+import { createEmptyMap } from "@/lib/utils/createEmptyMap";
 
 interface MapContextType {
     maps: Map[];
-    currentMap: Map | null;
+    currentMap: Map;
     isLoading: boolean;
     error: string | null;
     setCurrentMapById: (mapId: string | null) => void;
     refreshMaps: () => Promise<void>;
     saveMap: (map: Partial<Map>) => Promise<Map>;
-    setCurrentMap: (map: Map | null) => void;
+    setCurrentMap: (map: Map) => void;
     deleteMap: (mapId: string) => Promise<void>;
     changeMapEnabled: boolean;
     setChangeMapEnabled: (enabled: boolean) => void;
@@ -20,7 +20,7 @@ interface MapContextType {
 
 const MapContext = createContext<MapContextType>({
     maps: [],
-    currentMap: null,
+    currentMap: {} as Map,
     isLoading: false,
     error: null,
     setCurrentMapById: () => { },
@@ -34,7 +34,7 @@ const MapContext = createContext<MapContextType>({
 
 export function MapProvider({ children }: { children: ReactNode }) {
     const [maps, setMaps] = useState<Map[]>([]);
-    const [currentMap, setCurrentMap] = useState<Map | null>(null);
+    const [currentMap, setCurrentMap] = useState<Map>(createEmptyMap());
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [changeMapEnabled, setChangeMapEnabled] = useState(true);
@@ -64,8 +64,6 @@ export function MapProvider({ children }: { children: ReactNode }) {
         const foundMap = maps.find(map => map.id === mapId);
         if (foundMap) {
             setCurrentMap(foundMap);
-        } else {
-            setCurrentMap(null);
         }
     };
 
@@ -144,7 +142,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
             // Clear current map if it's the deleted one
             if (currentMap?.id === mapId) {
-                setCurrentMap(null);
+                setCurrentMap(createEmptyMap());
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to delete map";
@@ -163,7 +161,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (!currentMap) {
-            setCurrentMap(createEmptyMapForm());
+            setCurrentMap(createEmptyMap());
         }
     }, [currentMap, setCurrentMap]);
 
