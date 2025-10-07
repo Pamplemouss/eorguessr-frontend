@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Map } from "@/lib/types/Map";
+import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
 
 interface MapContextType {
     maps: Map[];
@@ -159,6 +160,12 @@ export function MapProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         fetchMaps();
     }, []);
+
+    useEffect(() => {
+        if (!currentMap) {
+            setCurrentMap(createEmptyMapForm());
+        }
+    }, [currentMap, setCurrentMap]);
 
     return (
         <MapContext.Provider
