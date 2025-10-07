@@ -3,7 +3,7 @@ import { Map } from "@/lib/types/Map";
 import { MapType } from "@/lib/types/MapTypeEnum";
 import { Expansion } from "../types/ExpansionEnum";
 
-export const createEmptyMapForm = (): Partial<Map> => ({
+export const createEmptyMapForm = (): Map => ({
     id: uuidv4(),
     name: { en: "", fr: "", de: "", ja: "" },
     type: MapType.MAP,
@@ -11,4 +11,5 @@ export const createEmptyMapForm = (): Partial<Map> => ({
     imagePath: "",
     markers: [],
     subAreas: [],
+    parentMap: null,
 });
