@@ -1,7 +1,7 @@
 import { useMap } from '@/app/providers/MapContextProvider';
 import { Map } from '@/lib/types/Map';
 import React from 'react'
-import MapFormMarkers from './MapFormMarkers';
+import MapFormMarkers from './Markers/MapFormMarkers';
 import MapFormName from './MapFormName';
 import MapFormExpansion from './MapFormExpansion';
 import MapFormType from './MapFormType';
