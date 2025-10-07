@@ -1,6 +1,6 @@
 import React from "react";
-import Game from "./components/Game";
-import { GameProvider } from "./components/contexts/GameContextProvider";
+import { GameProvider } from "./providers/GameContextProvider";
+import Game from "./components/home/Game";
 
 const page = () => {
     return (

@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
 import { useMap as useLeafletMap } from "react-leaflet";
-import { useMap } from "@/app/components/contexts/MapContextProvider";
-import { useLocale } from "@/app/components/contexts/LocalContextProvider";
+import { useMap } from "@/app/providers/MapContextProvider";
+import { useLocale } from "@/app/providers/LocalContextProvider";
 import { getMapById } from "@/lib/utils/getMapById";
 
 function SubAreaContent({

@@ -1,6 +1,6 @@
 import { Marker } from "@/lib/types/Marker";
 import React, { useState } from "react";
-import { useMap } from "@/app/components/contexts/MapContextProvider";
+import { useMap } from "@/app/providers/MapContextProvider";
 
 const emptyMarker = (): Marker => ({
     target: "",

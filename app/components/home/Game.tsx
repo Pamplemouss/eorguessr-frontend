@@ -1,9 +1,9 @@
 "use client";
 
+import { useGame } from "@/app/providers/GameContextProvider";
 import React from "react";
-import JoinGame from "./JoinGame";
 import GameCucu from "./GameCucu";
-import { useGame } from "./contexts/GameContextProvider";
+import JoinGame from "./JoinGame";
 
 const Game = () => {
     const { room } = useGame();

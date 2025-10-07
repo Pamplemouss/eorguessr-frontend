@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "@/public/globals.css";
-import { LocaleProvider } from "./components/contexts/LocalContextProvider";
+import { LocaleProvider } from "./providers/LocalContextProvider";
 
 export const metadata: Metadata = {
     title: "Create Next App",

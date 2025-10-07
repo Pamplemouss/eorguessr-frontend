@@ -1,17 +1,18 @@
 "use client";
+
 import { MapContainer, Marker, Polygon, ImageOverlay } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Map } from "@/lib/types/Map";
 import React, { useState } from "react";
-import PolygonsEditor from "./PolygonsEditor";
 import { getMapById } from "@/lib/utils/getMapById";
 import { isMapExit } from "@/lib/utils/isMapExit";
-import { useLocale } from "@/app/components/contexts/LocalContextProvider";
+import { useLocale } from "@/app/providers/LocalContextProvider";
 import { MapType } from "@/lib/types/MapTypeEnum";
-import SubAreaControl from "./SubAreaControl";
+import { useMap } from "@/app/providers/MapContextProvider";
 import MapControl from "./MapControl";
-import { useMap } from "@/app/components/contexts/MapContextProvider";
+import SubAreaControl from "./SubAreaControl";
+import PolygonsEditor from "./PolygonsEditor";
 
 export default function MapEor() {
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);

@@ -4,12 +4,10 @@ import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
 import { MapType } from "@/lib/types/MapTypeEnum";
 import { Map, MapName } from "@/lib/types/Map";
 import { Expansion } from "@/lib/types/ExpansionEnum";
-import dynamic from "next/dynamic";
-import MarkerFormList from "./MarkerFormList";
-import { useLocale } from "@/app/components/contexts/LocalContextProvider";
-import { useMap } from "@/app/components/contexts/MapContextProvider";
-
-const MapEor = dynamic(() => import("./MapEor"), { ssr: false });
+import MarkerFormList from "../../components/admin/maps/components/MarkerFormList";
+import { useLocale } from "@/app/providers/LocalContextProvider";
+import { useMap } from "@/app/providers/MapContextProvider";
+import MapEor from "../../components/common/MapEor/MapEor";
 
 export default function AdminMapsPage() {
     const { locale, setLocale } = useLocale();

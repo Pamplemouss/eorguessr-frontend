@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "@/public/globals.css";
-import { LocaleProvider } from "@/app/components/contexts/LocalContextProvider";
-import { MapProvider } from "@/app/components/contexts/MapContextProvider";
+import { LocaleProvider } from "@/app/providers/LocalContextProvider";
+import { MapProvider } from "@/app/providers/MapContextProvider";
 
 export const metadata: Metadata = {
     title: "Create Next App",

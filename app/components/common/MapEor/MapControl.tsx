@@ -1,7 +1,7 @@
 import { invLerp, lerp } from "@/lib/utils/lerp";
 import { useEffect, useMemo, useState } from "react";
 import { useMap as useLeafletMap } from "react-leaflet";
-import { useMap } from "@/app/components/contexts/MapContextProvider";
+import { useMap } from "@/app/providers/MapContextProvider";
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
 import { FaLongArrowAltUp, FaMinus, FaPlus } from "react-icons/fa";
