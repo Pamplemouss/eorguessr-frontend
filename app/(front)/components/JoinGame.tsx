@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useGame } from "./contexts/GameContextProvider";
 import { GameState } from "@/lib/types/common/GameState";
 import { Room } from "colyseus.js";
+import { useGame } from "@/app/providers/GameContextProvider";
 
 const JoinGame = () => {
     const [roomId, setRoomId] = useState("");

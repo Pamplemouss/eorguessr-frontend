@@ -1,7 +1,7 @@
 import React from "react";
 import { GameStep } from "@/lib/types/common/GameStep";
-import { useGame } from "./contexts/GameContextProvider";
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
+import { useGame } from "@/app/providers/GameContextProvider";
 
 export default function GameCucu() {
     const { room, gameState } = useGame();

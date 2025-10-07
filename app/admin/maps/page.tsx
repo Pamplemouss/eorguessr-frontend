@@ -1,13 +1,15 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { createEmptyMapForm } from "@/lib/utils/createEmptyMapForm";
 import { MapType } from "@/lib/types/MapType";
 import { Map, MapName } from "@/lib/types/Map";
 import { Expansion } from "@/lib/types/Expansion";
-import MarkerFormList from "../../components/admin/maps/components/MarkerFormList";
+import MarkerFormList from "./components/MarkerFormList";
 import { useLocale } from "@/app/providers/LocalContextProvider";
 import { useMap } from "@/app/providers/MapContextProvider";
-import MapEor from "../../components/common/MapEor/MapEor";
+import MapEor from "../../components/MapEor/MapEor";
+import isEqual from "lodash.isequal";
 
 export default function AdminMapsPage() {
     const { locale, setLocale } = useLocale();
@@ -35,8 +37,7 @@ export default function AdminMapsPage() {
 
     // Check if current map is dirty
     const isMapDirty = () => {
-        if (!currentMap || !cleanMapCopy) return false;
-        return JSON.stringify(currentMap) !== JSON.stringify(cleanMapCopy);
+        return !isEqual(currentMap, cleanMapCopy);
     };
 
     const filteredMaps = maps.filter((m) =>
