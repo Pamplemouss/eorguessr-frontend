@@ -33,9 +33,10 @@ export default function MapEor({
     const southWest = toLatLngTuple(boundsArray[0]);
     const northEast = toLatLngTuple(boundsArray[1]);
 
+    const offset = 50
     const maxBounds: L.LatLngBoundsExpression = [
-        [southWest[0] - 30, southWest[1] - 30],
-        [northEast[0] + 30, northEast[1] + 30],
+        [southWest[0] - offset, southWest[1] - offset],
+        [northEast[0] + offset, northEast[1] + offset],
     ];
 
     const baseUrl = process.env.NEXT_PUBLIC_S3_BUCKET_URL || "";
@@ -99,6 +100,9 @@ export default function MapEor({
                     </React.Fragment>
                 ))}
             </MapContainer>
+            <div
+                className="absolute top-0 left-0 w-full h-full z-10 bg-black/80 backdrop-blur pointer-events-none"
+            ></div>
         </div>
     );
 }
