@@ -12,13 +12,14 @@ function SubAreaContent({
     maps,
     setCurrentMapById,
     changeMapEnabled,
+    locale,
 }: {
     currentMap: ReturnType<typeof useMap>["currentMap"];
     maps: ReturnType<typeof useMap>["maps"];
     setCurrentMapById: ReturnType<typeof useMap>["setCurrentMapById"];
     changeMapEnabled: ReturnType<typeof useMap>["changeMapEnabled"];
+    locale: string;
 }) {
-    const { locale } = useLocale();
     if (!currentMap) return null;
 
     return (
@@ -71,6 +72,7 @@ export default function SubAreaControl() {
                     maps={maps}
                     setCurrentMapById={setCurrentMapById}
                     changeMapEnabled={changeMapEnabled}
+                    locale={locale}
                 />
             );
 
