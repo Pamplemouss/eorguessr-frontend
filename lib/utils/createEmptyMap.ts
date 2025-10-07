@@ -12,4 +12,8 @@ export const createEmptyMap = (): Map => ({
     markers: [],
     subAreas: [],
     parentMap: null,
+    size: {
+        x: 0,
+        y: 0,
+    }
 });

@@ -7,7 +7,7 @@ const MapFormSize = () => {
     const handleSizeChange = (dimension: 'x' | 'y', value: string) => {
         if (!currentMap) return;
 
-        const numValue = parseInt(value) || 0;
+        const numValue = Math.round((parseFloat(value) || 0) * 10) / 10;
         setCurrentMap({
             ...currentMap,
             size: {
@@ -29,7 +29,7 @@ const MapFormSize = () => {
                         value={currentMap?.size?.x || 0}
                         onChange={(e) => handleSizeChange('x', e.target.value)}
                         className="border rounded px-2 py-1 w-24"
-                        placeholder="0"
+                        placeholder="0.0"
                     />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -40,7 +40,7 @@ const MapFormSize = () => {
                         value={currentMap?.size?.y || 0}
                         onChange={(e) => handleSizeChange('y', e.target.value)}
                         className="border rounded px-2 py-1 w-24"
-                        placeholder="0"
+                        placeholder="0.0"
                     />
                 </div>
             </div>

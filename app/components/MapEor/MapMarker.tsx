@@ -31,7 +31,7 @@ const MapMarker = ({
         const isExit = markerMap ? isMapExit(currentMap, markerMap) : false;
         const isDungeon = markerMap?.type === MapType.DUNGEON;
         const html = `
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center whitespace-nowrap marker tracking-wide font-myriad-cond text-lg">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center marker whitespace-nowrap tracking-wide font-myriad-cond text-lg !cursor-pointer">
             ${isDungeon ? `<img src="/map/dungeon_icon.webp" class="w-5 h-5 mr-1" />` : ""}
             <span>${text}</span>
         </div>

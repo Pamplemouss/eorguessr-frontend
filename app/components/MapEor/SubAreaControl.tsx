@@ -23,7 +23,7 @@ function SubAreaContent({
     if (!currentMap) return null;
 
     return (
-        <div className="text-right text-slate-100 p-2 pl-7 text-sm relative">
+        <div className="text-right text-slate-100 p-2 pl-7 text-sm relative top-5">
             <div className="absolute z-10 top-0 w-full h-full left-0 blur-sm bg-gradient-to-l from-black/40 via-black/40 via-20% to-transparent"></div>
             {currentMap.subAreas?.map((subAreaId) => {
                 const subMap = getMapById(maps, subAreaId);

@@ -87,7 +87,7 @@ function ZoomSliderComponent({
     };
 
     return (
-        <div className="flex rotate-90 origin-top-left absolute -top-1 left-5">
+        <div className="flex rotate-90 origin-top-left absolute -top-2 left-4">
             <ControlButton
                 onClick={handleAncestorMapClick}
                 title={hasAncestorMap ? "Go to ancestor map" : "No ancestor map"}
@@ -116,7 +116,7 @@ function ZoomSliderComponent({
                 max="100"
                 value={value}
                 onChange={handleOnChange}
-                className="zoom-slider w-24 4k:w-40 rotate-180 origin-center accent-red-300"
+                className="zoom-slider w-24 4k:w-40 rotate-180 origin-center accent-red-300 ml-0.5"
             />
             <ControlButton
                 onClick={() => leafletMap.setZoom(leafletMap.getMinZoom())}

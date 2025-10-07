@@ -13,15 +13,6 @@
     margin: 0px;
 }
 
-.leaflet-marker-icon .marker {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: max-content;
-    height: max-content;
-    pointer-events: auto;
-}
-
 .leaflet-marker-icon.exit .marker {
     @apply text-[rgb(245,215,120)] text-border-yellow-900/80;
 }
