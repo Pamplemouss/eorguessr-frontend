@@ -5,8 +5,13 @@ import MapList from "./components/MapList";
 import AdminLocaleSelector from "./components/AdminLocaleSelector";
 import MapForm from "./components/MapForm/MapForm";
 import AdminMapError from "./components/AdminMapError";
+import { useState } from "react";
+import MapSettings from "./components/MapSettings";
 
 export default function AdminMapsPage() {
+    const [showPolygonsEditor, setShowPolygonsEditor] = useState(false);
+    const [dragMode, setDragMode] = useState(false);
+    
     return (
         <div className="flex h-screen w-screen">
             <div className="p-4 flex flex-col gap-4">
@@ -17,8 +22,17 @@ export default function AdminMapsPage() {
                 <MapForm />
             </div>
 
-            <div className="w-full h-full flex flex-col items-center justify-center">
-                <MapEor />
+            <div className="w-full h-full flex flex-col items-center justify-center gap-10">
+                <MapSettings
+                    showPolygonsEditor={showPolygonsEditor}
+                    setShowPolygonsEditor={setShowPolygonsEditor}
+                    dragMode={dragMode}
+                    setDragMode={setDragMode}
+                />
+                <MapEor
+                    showPolygonsEditor={showPolygonsEditor}
+                    dragMode={dragMode}
+                />
             </div>
         </div>
     );
