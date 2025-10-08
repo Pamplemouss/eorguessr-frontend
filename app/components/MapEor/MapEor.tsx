@@ -11,6 +11,8 @@ import PolygonsEditor from "./PolygonsEditor";
 import MapMarker from "./MapMarker";
 import MapMouseTracker from "./MapMouseTracker";
 import getBoundsFromMap from "@/lib/utils/getBoundsFromMap";
+import getCenterFromMap from "@/lib/utils/getCenterFromMap";
+import getZoomFromMap from "@/lib/utils/getZoomFromMap";
 
 export default function MapEor({
     showPolygonsEditor = false,
@@ -33,6 +35,9 @@ export default function MapEor({
     const southWest = toLatLngTuple(boundsArray[0]);
     const northEast = toLatLngTuple(boundsArray[1]);
 
+    const center = getCenterFromMap(currentMap);
+    const zoom = getZoomFromMap(currentMap);
+
     const offset = 50
     const maxBounds: L.LatLngBoundsExpression = [
         [southWest[0] - offset, southWest[1] - offset],
@@ -47,7 +52,7 @@ export default function MapEor({
             <div className="absolute inset-0 pointer-events-none shadow-[inset_0px_0px_20px_rgba(0,0,0,0.5)] rounded z-[1000]"></div>
             <MapContainer
                 maxBounds={maxBounds}
-                center={[0, 0]}
+                center={center}
                 className="h-full w-full"
                 crs={L.CRS.Simple}
                 key={currentMap.id}
@@ -56,7 +61,7 @@ export default function MapEor({
                 scrollWheelZoom={true}
                 doubleClickZoom={false}
                 zoomSnap={0.1}
-                zoom={1}
+                zoom={zoom}
                 minZoom={1}
                 maxZoom={5}
             >

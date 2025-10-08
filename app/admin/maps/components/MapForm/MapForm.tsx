@@ -13,6 +13,8 @@ import MapFormActions from './MapFormActions';
 import MapFormId from './MapFormId';
 import MapFormSize from './MapFormSize';
 import MapFormSpecialBounds from './MapFormSpecialBounds';
+import MapFormSpecialCenter from './MapFormSpecialCenter';
+import MapFormSpecialZoom from './MapFormSpecialZoom';
 
 const MapForm = () => {
     const { maps, currentMap } = useMap();
@@ -33,6 +35,8 @@ const MapForm = () => {
             <MapFormImagePath />
             <MapFormMarkers />
             <MapFormSpecialBounds />
+            <MapFormSpecialCenter />
+            <MapFormSpecialZoom />
             <MapFormActions />
         </div>
     )

@@ -33,6 +33,8 @@ const MapSchema: Schema<Map> = new Schema({
 	subAreas: [String],
 	imagePath: String,
 	specialBounds: { type: [[Number]], default: null },
+	specialCenter: { type: [Number], default: null },
+	specialZoom: { type: Number, default: null },
 	size: { type: { x: Number, y: Number }, required: true },
 });
 

@@ -20,6 +20,8 @@ export interface Map {
     subAreas?: string[];
     imagePath?: string;
     specialBounds?: L.LatLngBoundsExpression;
+    specialCenter?: L.LatLngExpression;
+    specialZoom?: number;
     size: {
         x: number;
         y: number;
