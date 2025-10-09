@@ -11,18 +11,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
+}: { children: React.ReactNode }) {
     return (
-        <LocaleProvider>
-            <AdminMapConfigProvider>
-                <MapProvider>
-                    <html lang="en">
-                        <body>{children}</body>
-                    </html>
-                </MapProvider>
-            </AdminMapConfigProvider>
-        </LocaleProvider>
+        <html lang="en">
+            <body>
+                <LocaleProvider>
+                    <AdminMapConfigProvider>
+                        <MapProvider>
+                            {children}
+                        </MapProvider>
+                    </AdminMapConfigProvider>
+                </LocaleProvider>
+            </body>
+        </html>
     );
 }

@@ -9,14 +9,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
-        <LocaleProvider>
-            <html lang="en">
-                <body>{children}</body>
-            </html>
-        </LocaleProvider>
+        <html lang="en">
+            <body>
+                <LocaleProvider>{children}</LocaleProvider>
+            </body>
+        </html>
     );
 }

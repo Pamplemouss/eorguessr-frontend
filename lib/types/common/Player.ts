@@ -5,5 +5,5 @@ export class Player extends Schema {
     @type("string") name: string = '';
     @type("boolean") hasPlayed: boolean = false;
     @type({map: Location}) guesses = new MapSchema<Location>();
-    @type("int8") scores = new ArraySchema<number>();
+    @type(["number"]) scores = new ArraySchema<number>();
 }
