@@ -1,5 +1,5 @@
 import { Marker } from '@/lib/types/Marker';
-import React from 'react'
+import React, { useState } from 'react'
 
 const MapFormMarkerLatLng = ({
     draft,
@@ -8,7 +8,9 @@ const MapFormMarkerLatLng = ({
     draft: Marker,
     setDraft: (d: Marker) => void
 }) => {
-    const parseLatLngString = (text: string): [number, number] => {
+    const [inputValue, setInputValue] = useState(JSON.stringify(draft.latLng));
+
+    const parseLatLngString = (text: string): [number, number] | null => {
         try {
             const arr = JSON.parse(text);
             if (
@@ -22,51 +24,30 @@ const MapFormMarkerLatLng = ({
         } catch (err) {
             // Ignore parse errors
         }
-        return draft.latLng;
+        return null;
+    };
+
+    const handleInputChange = (value: string) => {
+        setInputValue(value);
+        
+        const parsed = parseLatLngString(value);
+        if (parsed) {
+            setDraft({
+                ...draft,
+                latLng: parsed,
+            });
+        }
     };
 
     return (
         <div>
-            <label className="block text-sm font-medium mt-2">Lat/Lng (paste [lat,lng])</label>
+            <label className="text-sm font-medium text-gray-700">Lat/Lng</label>
             <input
-                type="text"
-                placeholder='[8.37109375,-6.2900390625]'
-                value={JSON.stringify(draft.latLng)}
-                onChange={(e) =>
-                    setDraft({
-                        ...draft,
-                        latLng: parseLatLngString(e.target.value),
-                    })
-                }
                 className="border p-2 w-full font-mono text-xs"
+                placeholder='[8.37109375,-6.2900390625]'
+                value={inputValue}
+                onChange={(e) => handleInputChange(e.target.value)}
             />
-
-            <div className="flex gap-2">
-                <input
-                    type="number"
-                    placeholder="Latitude"
-                    value={draft.latLng[0]}
-                    onChange={(e) =>
-                        setDraft({
-                            ...draft,
-                            latLng: [parseFloat(e.target.value) || 0, draft.latLng[1]],
-                        })
-                    }
-                    className="border p-2 w-1/2"
-                />
-                <input
-                    type="number"
-                    placeholder="Longitude"
-                    value={draft.latLng[1]}
-                    onChange={(e) =>
-                        setDraft({
-                            ...draft,
-                            latLng: [draft.latLng[0], parseFloat(e.target.value) || 0],
-                        })
-                    }
-                    className="border p-2 w-1/2"
-                />
-            </div>
         </div>
     )
 }

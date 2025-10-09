@@ -10,35 +10,54 @@ import MapFormMarkerActions from "./MapFormMarkerActions";
 export default function MapFormMarkers() {
     const [draft, setDraft] = useState<Marker>(createEmptyMarker());
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [showForm, setShowForm] = useState<boolean>(false);
 
     return (
-        <div className="p-4 border rounded max-w-md">
-            <h3 className="text-lg mb-2">Markers</h3>
+        <div>
             <MapFormMarkersList
                 setDraft={setDraft}
                 editingIndex={editingIndex}
                 setEditingIndex={setEditingIndex}
+                setShowForm={setShowForm}
             />
-            <div className="flex flex-col gap-2">
-                <MapFormMarkerTarget
-                    draft={draft}
-                    setDraft={setDraft}
-                />
-                <MapFormMarkerLatLng
-                    draft={draft}
-                    setDraft={setDraft}
-                />
-                <MapFormMarkerGeoJSON
-                    draft={draft}
-                    setDraft={setDraft}
-                />
-                <MapFormMarkerActions
-                    draft={draft}
-                    setDraft={setDraft}
-                    editingIndex={editingIndex}
-                    setEditingIndex={setEditingIndex}
-                />
-            </div>
+            
+            {!showForm && (
+                <button
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1"
+                    onClick={() => {
+                        setShowForm(true);
+                        setEditingIndex(null);
+                        setDraft(createEmptyMarker());
+                    }}
+                    type="button"
+                >
+                    Ajouter un marker
+                </button>
+            )}
+
+            {showForm && (
+                <div className="flex flex-col gap-2">
+                    <MapFormMarkerTarget
+                        draft={draft}
+                        setDraft={setDraft}
+                    />
+                    <MapFormMarkerLatLng
+                        draft={draft}
+                        setDraft={setDraft}
+                    />
+                    <MapFormMarkerGeoJSON
+                        draft={draft}
+                        setDraft={setDraft}
+                    />
+                    <MapFormMarkerActions
+                        draft={draft}
+                        setDraft={setDraft}
+                        editingIndex={editingIndex}
+                        setEditingIndex={setEditingIndex}
+                        setShowForm={setShowForm}
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -7,8 +7,6 @@ const MapFormActions = () => {
     const { saveMap, deleteMap, isLoading, setCurrentMapById, currentMap, setCurrentMap } = useMap();
     const [cleanMapCopy, setCleanMapCopy] = useState<Map | null>(null);
 
-
-
     // Create a clean copy when currentMap ID changes
     useEffect(() => {
         if (currentMap) {
@@ -51,9 +49,9 @@ const MapFormActions = () => {
 
 
     return (
-        <div className="flex gap-2 mt-2">
+        <div className="sticky bottom-0 bg-white mt-auto p-3 border border-black/30 shadow-lg flex gap-2 justify-end z-10">
             <button
-                className="bg-blue-500 text-white px-4 py-2 flex items-center gap-2 relative"
+                className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 flex items-center gap-2 relative"
                 onClick={handleSave}
                 disabled={isLoading}
             >

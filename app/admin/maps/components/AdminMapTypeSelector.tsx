@@ -23,13 +23,13 @@ const AdminMapTypeSelector = () => {
     };
 
     return (
-        <div className="border p-4 rounded max-w-md">
+        <div className="border p-4 rounded grow">
             <h3 className="text-lg font-semibold mb-3">Filter by Map Types</h3>
             
             <div className="flex gap-2 mb-3">
                 <button
                     onClick={handleSelectAll}
-                    className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                    className="px-2 py-1 text-xs bg-indigo-500 text-white rounded hover:bg-indigo-600"
                 >
                     Select All
                 </button>
@@ -41,7 +41,7 @@ const AdminMapTypeSelector = () => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-3 gap-2">
                 {Object.values(MapType).map((mapType) => (
                     <label
                         key={mapType}

@@ -7,18 +7,21 @@ const MapFormMarkerActions = ({
     editingIndex,
     setEditingIndex,
     draft,
-    setDraft
+    setDraft,
+    setShowForm
 } : {
     editingIndex: number | null,
     setEditingIndex: (i: number | null) => void,
     draft: Marker,
     setDraft: (d: Marker) => void,
+    setShowForm: (show: boolean) => void,
 }) => {
     const { currentMap, setCurrentMap } = useMap();
 
     const handleCancel = () => {
         setEditingIndex(null);
         setDraft(createEmptyMarker());
+        setShowForm(false);
     };
 
     const handleSave = () => {
@@ -35,26 +38,25 @@ const MapFormMarkerActions = ({
         setCurrentMap({ ...currentMap, markers: newMarkers });
         setEditingIndex(null);
         setDraft(createEmptyMarker());
+        setShowForm(false);
     };
 
     return (
         <div className="flex gap-2 mt-2">
             <button
-                className="bg-blue-500 text-white px-3 py-1"
+                className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1"
                 onClick={handleSave}
                 type="button"
             >
                 {editingIndex !== null ? "Mettre à jour" : "Ajouter"}
             </button>
-            {editingIndex !== null && (
-                <button
-                    className="bg-gray-300 px-3 py-1"
-                    onClick={handleCancel}
-                    type="button"
-                >
-                    Annuler
-                </button>
-            )}
+            <button
+                className="bg-gray-300 px-3 py-1"
+                onClick={handleCancel}
+                type="button"
+            >
+                Annuler
+            </button>
         </div>
     )
 }
