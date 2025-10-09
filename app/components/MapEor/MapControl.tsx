@@ -163,7 +163,10 @@ export default function MapControl() {
         control.onRemove = function (map) {
             const div = this.getContainer();
             if (div && (div as any)._reactRoot) {
-                (div as any)._reactRoot.unmount();
+                // Defer the unmounting to avoid race condition
+                setTimeout(() => {
+                    (div as any)._reactRoot.unmount();
+                }, 0);
             }
         };
 
