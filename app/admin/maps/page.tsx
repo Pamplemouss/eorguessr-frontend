@@ -3,6 +3,8 @@
 import MapEor from "../../components/MapEor/MapEor";
 import MapList from "./components/MapList";
 import AdminLocaleSelector from "./components/AdminLocaleSelector";
+import AdminExpansionSelector from "./components/AdminExpansionSelector";
+import AdminMapTypeSelector from "./components/AdminMapTypeSelector";
 import MapForm from "./components/MapForm/MapForm";
 import AdminMapError from "./components/AdminMapError";
 import { useState } from "react";
@@ -18,6 +20,8 @@ export default function AdminMapsPage() {
                 <h1 className="text-2xl mb-4">Admin - Maps</h1>
                 <AdminMapError />
                 <AdminLocaleSelector />
+                <AdminExpansionSelector />
+                <AdminMapTypeSelector />
                 <MapList />
                 <MapForm />
             </div>

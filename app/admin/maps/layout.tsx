@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/public/globals.css";
 import { LocaleProvider } from "@/app/providers/LocalContextProvider";
 import { MapProvider } from "@/app/providers/MapContextProvider";
+import { AdminMapConfigProvider } from "@/app/providers/AdminMapConfigContextProvider";
 
 export const metadata: Metadata = {
     title: "Create Next App",
@@ -15,11 +16,13 @@ export default function RootLayout({
 }>) {
     return (
         <LocaleProvider>
-            <MapProvider>
-                <html lang="en">
-                    <body>{children}</body>
-                </html>
-            </MapProvider>
+            <AdminMapConfigProvider>
+                <MapProvider>
+                    <html lang="en">
+                        <body>{children}</body>
+                    </html>
+                </MapProvider>
+            </AdminMapConfigProvider>
         </LocaleProvider>
     );
 }

@@ -1,13 +1,17 @@
+import { useAdminMapConfig } from '@/app/providers/AdminMapConfigContextProvider';
 import { useMap } from '@/app/providers/MapContextProvider';
 import { createEmptyMap } from '@/lib/utils/createEmptyMap';
+import useFilterMaps from '@/lib/utils/useFilterMaps';
 import React, { useState } from 'react'
 
 const MapList = () => {
     const { maps, currentMap, setCurrentMapById, setCurrentMap } = useMap();
+    const { selectedExpansions, selectedMapTypes } = useAdminMapConfig();
     const [search, setSearch] = useState("");
-    const filteredMaps = maps.filter((m) =>
-        (m.name["en"] || "").toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredMaps = useFilterMaps(maps, selectedExpansions, selectedMapTypes)
+        .filter((m) =>
+            m.name?.en?.toLowerCase().includes(search.toLowerCase())
+        );
 
     return (
         <div>

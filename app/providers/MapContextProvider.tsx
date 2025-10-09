@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Map } from "@/lib/types/Map";
 import { createEmptyMap } from "@/lib/utils/createEmptyMap";
+import useFilterMaps from "@/lib/utils/useFilterMaps";
+import { useAdminMapConfig } from "./AdminMapConfigContextProvider";
 
 interface MapContextType {
     maps: Map[];
@@ -172,10 +174,13 @@ export function MapProvider({ children }: { children: ReactNode }) {
         }
     }, [currentMap, setCurrentMap]);
 
+    const { selectedExpansions, selectedMapTypes } = useAdminMapConfig();
+    const filteredMaps = useFilterMaps(maps, selectedExpansions, selectedMapTypes);
+
     return (
         <MapContext.Provider
             value={{
-                maps,
+                maps: filteredMaps,
                 currentMap,
                 isLoading,
                 error,
