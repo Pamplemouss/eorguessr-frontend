@@ -16,7 +16,7 @@ export default function AdminMapsPage() {
     
     return (
         <div className="flex h-screen w-screen">
-            <div className="p-4 flex flex-col gap-4">
+            <div className="p-4 pb-0 flex flex-col gap-4 h-screen overflow-auto">
                 <h1 className="text-2xl mb-4">Admin - Maps</h1>
                 <AdminMapError />
                 <AdminLocaleSelector />
