@@ -41,7 +41,7 @@ const MapFormMarkersList = ({
     };
 
     return (
-        <ul className="mb-4 grid grid-cols-2">
+        <ul className="mb-4 grid grid-cols-1">
             {currentMap.markers.length === 0 && <li className="text-gray-500">Aucun marker.</li>}
             {currentMap.markers.map((marker, idx) => (
                 <li
