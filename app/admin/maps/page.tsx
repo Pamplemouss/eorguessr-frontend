@@ -1,42 +1,20 @@
 "use client";
 
-import MapEor from "../../components/MapEor/MapEor";
-import MapList from "./components/MapList";
-import AdminLocaleSelector from "./components/AdminLocaleSelector";
-import AdminExpansionSelector from "./components/AdminExpansionSelector";
-import AdminMapTypeSelector from "./components/AdminMapTypeSelector";
-import MapForm from "./components/MapForm/MapForm";
-import AdminMapError from "./components/AdminMapError";
-import { useState } from "react";
-import MapSettings from "./components/MapSettings";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AdminMapsPage() {
-    const [showPolygonsEditor, setShowPolygonsEditor] = useState(false);
-    const [dragMode, setDragMode] = useState(false);
-    
-    return (
-        <div className="flex h-screen w-screen">
-            <div className="p-4 pb-0 flex flex-col gap-4 h-screen overflow-auto">
-                <h1 className="text-2xl mb-4">Admin - Maps</h1>
-                <AdminMapError />
-                <AdminLocaleSelector />
-                <AdminExpansionSelector />
-                <AdminMapTypeSelector />
-                <MapList />
-                <MapForm />
-            </div>
+    const router = useRouter();
 
-            <div className="w-full h-full flex flex-col items-center justify-center gap-10">
-                <MapSettings
-                    showPolygonsEditor={showPolygonsEditor}
-                    setShowPolygonsEditor={setShowPolygonsEditor}
-                    dragMode={dragMode}
-                    setDragMode={setDragMode}
-                />
-                <MapEor
-                    showPolygonsEditor={showPolygonsEditor}
-                    dragMode={dragMode}
-                />
+    useEffect(() => {
+        router.push('/admin#maps');
+    }, [router]);
+
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+                <h1 className="text-xl font-semibold text-gray-900 mb-2">Redirection...</h1>
+                <p className="text-gray-600">Vous êtes redirigé vers la nouvelle interface d'administration.</p>
             </div>
         </div>
     );
