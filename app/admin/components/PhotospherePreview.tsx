@@ -35,6 +35,7 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
     const [selectedQuality, setSelectedQuality] = useState<string>('light');
     const [viewMode, setViewMode] = useState<'image' | 'sphere'>('sphere');
     const [showThumbnailModal, setShowThumbnailModal] = useState(false);
+    const [variantSizes, setVariantSizes] = useState<Record<string, number>>({});
 
     // Reset quality selection when photosphere changes
     useEffect(() => {
@@ -47,6 +48,37 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
             if (availableQualities.length > 0) {
                 setSelectedQuality(availableQualities[0].key);
             }
+        }
+    }, [photosphere]);
+
+    // Fetch file sizes for variants
+    useEffect(() => {
+        const fetchVariantSizes = async () => {
+            if (!photosphere?.variants) return;
+
+            const sizes: Record<string, number> = {};
+
+            for (const [key, url] of Object.entries(photosphere.variants)) {
+                if (url) {
+                    try {
+                        const response = await fetch(url, { method: 'HEAD' });
+                        const contentLength = response.headers.get('Content-Length');
+                        if (contentLength) {
+                            sizes[key] = parseInt(contentLength, 10);
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to fetch size for variant ${key}:`, error);
+                    }
+                }
+            }
+
+            // Add original size
+            sizes.original = photosphere.size;
+            setVariantSizes(sizes);
+        };
+
+        if (photosphere) {
+            fetchVariantSizes();
         }
     }, [photosphere]);
 
@@ -63,7 +95,7 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
             return () => document.removeEventListener('keydown', handleKeyPress);
         }
     }, [showThumbnailModal]);
-    
+
     const formatFileSize = (bytes: number) => {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         if (bytes === 0) return '0 Bytes';
@@ -82,42 +114,37 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
 
     const getDisplayUrl = () => {
         if (!photosphere) return '';
-        
+
         if (selectedQuality === 'original') return photosphere.url;
-        
+
         const variant = photosphere.variants?.[selectedQuality as keyof typeof photosphere.variants];
         return variant || photosphere.variants?.light || photosphere.variants?.panorama_thumbnail || photosphere.url;
     };
 
     const getAvailableQualities = () => {
         if (!photosphere?.variants) return [{ key: 'original', label: 'Original', url: photosphere?.url }];
-        
+
         const qualities = [];
-        
+
         if (photosphere.variants.panorama_thumbnail) qualities.push({ key: 'panorama_thumbnail', label: 'Miniature Panorama', url: photosphere.variants.panorama_thumbnail });
         if (photosphere.variants.light) qualities.push({ key: 'light', label: 'Léger', url: photosphere.variants.light });
         if (photosphere.variants.medium) qualities.push({ key: 'medium', label: 'Moyen', url: photosphere.variants.medium });
         if (photosphere.variants.heavy) qualities.push({ key: 'heavy', label: 'Lourd', url: photosphere.variants.heavy });
         qualities.push({ key: 'original', label: 'Original', url: photosphere.url });
-        
+
         return qualities;
     };
 
-    const handleDownload = () => {
-        const url = getDisplayUrl();
-        if (url) {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = photosphere?.name || 'photosphere.webp';
-            link.click();
-        }
-    };
+    const getCurrentQualitySize = () => {
+        if (!photosphere) return 0;
 
-    const handleView = () => {
-        const url = getDisplayUrl();
-        if (url) {
-            window.open(url, '_blank');
+        // Use the fetched variant size if available
+        if (variantSizes[selectedQuality]) {
+            return variantSizes[selectedQuality];
         }
+
+        // Fallback to original size
+        return photosphere.size;
     };
 
     return (
@@ -131,35 +158,54 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
                     <p>Sélectionnez une photosphère pour voir l'aperçu</p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 relative">
+                    {/* Thumbnail preview if available */}
+                    {photosphere.thumbnailUrl && (
+                        <div className="absolute top-[-53px] right-0">
+                            <label className="text-xs font-semibold text-gray-600 mb-1 block">Miniature</label>
+                            <div
+                                className="w-24 h-14 bg-gray-100 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-300 transition-all"
+                                onClick={() => setShowThumbnailModal(true)}
+                                title="Cliquer pour agrandir"
+                            >
+                                <img
+                                    src={photosphere.thumbnailUrl}
+                                    alt="Miniature"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        </div>
+                    )}
                     {/* View Mode Toggle */}
-                    <div className="flex gap-2 mb-4">
-                        <button
-                            onClick={() => setViewMode('sphere')}
-                            className={`
-                                px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2
-                                ${viewMode === 'sphere'
-                                    ? 'bg-purple-500 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }
-                            `}
-                        >
-                            <FaExpand />
-                            Vue 360°
-                        </button>
-                        <button
-                            onClick={() => setViewMode('image')}
-                            className={`
-                                px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2
-                                ${viewMode === 'image'
-                                    ? 'bg-purple-500 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }
-                            `}
-                        >
-                            <FaEye />
-                            Vue Image
-                        </button>
+                    <div className="flex gap-2 mb-4 justify-between items-start">
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setViewMode('sphere')}
+                                className={`
+                                    px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2
+                                    ${viewMode === 'sphere'
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }
+                                `}
+                            >
+                                <FaExpand />
+                                Vue 360°
+                            </button>
+                            <button
+                                onClick={() => setViewMode('image')}
+                                className={`
+                                    px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2
+                                    ${viewMode === 'image'
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }
+                                `}
+                            >
+                                <FaEye />
+                                Vue Image
+                            </button>
+                        </div>
                     </div>
 
                     {/* Quality Selector */}
@@ -169,22 +215,31 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
                                 <FaLayerGroup />
                                 Qualité d'affichage
                             </label>
-                            <div className="flex gap-2 flex-wrap">
-                                {getAvailableQualities().map((quality) => (
-                                    <button
-                                        key={quality.key}
-                                        onClick={() => setSelectedQuality(quality.key)}
-                                        className={`
-                                            px-3 py-1 rounded-full text-sm font-medium transition-colors
-                                            ${selectedQuality === quality.key
-                                                ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }
-                                        `}
-                                    >
-                                        {quality.label}
-                                    </button>
-                                ))}
+                            <div className="flex gap-2 flex-wrap justify-between items-center">
+                                <div className="flex gap-2 flex-wrap">
+                                    {getAvailableQualities().map((quality) => (
+                                        <button
+                                            key={quality.key}
+                                            onClick={() => setSelectedQuality(quality.key)}
+                                            className={`
+                                                px-3 py-1 rounded-full text-sm font-medium transition-colors
+                                                ${selectedQuality === quality.key
+                                                    ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                }
+                                            `}
+                                        >
+                                            {quality.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Current Quality Size */}
+                                <div className="px-3 py-1 bg-purple-50 border border-purple-200 rounded-full">
+                                    <span className="text-purple-600 font-mono font-medium text-sm">
+                                        {formatFileSize(getCurrentQualitySize())}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -218,86 +273,10 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
                                 }}
                             />
                         )}
-                        
-                        {/* Overlay Controls for Image View */}
-                        {viewMode === 'image' && (
-                            <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-4">
-                                <button
-                                    onClick={handleView}
-                                    className="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 p-3 rounded-full transition-all duration-200 hover:scale-110"
-                                    title="Voir en grand"
-                                >
-                                    <FaEye />
-                                </button>
-                                <button
-                                    onClick={handleDownload}
-                                    className="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 p-3 rounded-full transition-all duration-200 hover:scale-110"
-                                    title="Télécharger"
-                                >
-                                    <FaDownload />
-                                </button>
-                            </div>
-                        )}
                     </div>
-
-                    {/* Thumbnail preview if available */}
-                    {photosphere.thumbnailUrl && (
-                        <div>
-                            <label className="text-sm font-semibold text-gray-600 mb-2 block">Miniature</label>
-                            <div 
-                                className="w-32 h-18 bg-gray-100 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-300 transition-all"
-                                onClick={() => setShowThumbnailModal(true)}
-                                title="Cliquer pour agrandir"
-                            >
-                                <img
-                                    src={photosphere.thumbnailUrl}
-                                    alt="Miniature"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        </div>
-                    )}
 
                     {/* Details */}
                     <div className="space-y-3">
-                        <div>
-                            <label className="text-sm font-semibold text-gray-600">Nom du fichier</label>
-                            <p className="text-gray-900 bg-gray-50 p-2 rounded border">{photosphere.name}</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm font-semibold text-gray-600">Taille</label>
-                                <p className="text-gray-900 bg-gray-50 p-2 rounded border">
-                                    {formatFileSize(photosphere.size)}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-semibold text-gray-600">Date d'upload</label>
-                                <p className="text-gray-900 bg-gray-50 p-2 rounded border">
-                                    {formatDate(photosphere.uploadDate)}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="text-sm font-semibold text-gray-600">URL</label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    value={photosphere.url}
-                                    readOnly
-                                    className="flex-1 text-gray-900 bg-gray-50 p-2 rounded border text-sm"
-                                />
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(photosphere.url)}
-                                    className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded text-sm transition-colors"
-                                >
-                                    Copier
-                                </button>
-                            </div>
-                        </div>
-
                         {/* Metadata Section */}
                         {photosphere.metadata && (
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -361,30 +340,12 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
                             </div>
                         )}
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-4 border-t">
-                        <button
-                            onClick={handleView}
-                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors flex items-center justify-center gap-2"
-                        >
-                            <FaEye />
-                            Voir
-                        </button>
-                        <button
-                            onClick={handleDownload}
-                            className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors flex items-center justify-center gap-2"
-                        >
-                            <FaDownload />
-                            Télécharger
-                        </button>
-                    </div>
                 </div>
             )}
 
             {/* Thumbnail Modal */}
             {showThumbnailModal && photosphere?.thumbnailUrl && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur z-[1000] flex items-center justify-center p-4"
                     onClick={() => setShowThumbnailModal(false)}
                 >
