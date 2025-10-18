@@ -55,7 +55,7 @@ const MapSettings = ({
                 onClick={() => setDragMode(v => !v)}
             >
                 <FaArrowsAlt />
-                {dragMode ? "Mode déplacement ON" : "Mode déplacement"}
+                {dragMode ? "Déplacement ON" : "Déplacement OFF"}
             </button>
         </div>
     )
