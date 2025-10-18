@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
 	FaCloudUploadAlt,
@@ -41,6 +41,17 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 
 	const [currentStep, setCurrentStep] = useState<Step>('selection');
 
+	// Auto-generate qualities when entering summary step
+	useEffect(() => {
+		if (currentStep === 'summary') {
+			panoramaFiles.forEach(pf => {
+				if (Object.keys(pf.qualities).length === 0 && pf.uploadStatus === 'ready') {
+					generateQualities(pf.id);
+				}
+			});
+		}
+	}, [currentStep, panoramaFiles, generateQualities]);
+
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop: async (acceptedFiles) => {
 			await addFiles(acceptedFiles);
@@ -52,23 +63,25 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 		multiple: true
 	});
 
-	// Check if all files are ready for upload
+	// Check if all files are ready for upload (including qualities)
 	const allFilesReady = panoramaFiles.length > 0 &&
 		panoramaFiles.every(pf =>
 			pf.uploadStatus === 'ready' &&
 			pf.thumbnails.length > 0
 		);
 
+	// Check if all qualities are generated for upload step
+	const allQualitiesReady = panoramaFiles.length > 0 &&
+		panoramaFiles.every(pf =>
+			pf.uploadStatus === 'ready' &&
+			pf.thumbnails.length > 0 &&
+			Object.keys(pf.qualities).length === 4 // All 4 quality configs
+		);
+
 	const handleNextStep = () => {
 		if (currentStep === 'thumbnails' && allFilesReady) {
-			// Generate qualities for all files
-			panoramaFiles.forEach(pf => {
-				if (Object.keys(pf.qualities).length === 0) {
-					generateQualities(pf.id);
-				}
-			});
 			setCurrentStep('summary');
-		} else if (currentStep === 'summary') {
+		} else if (currentStep === 'summary' && allQualitiesReady) {
 			setCurrentStep('uploading');
 			uploadBatch().then(() => {
 				setCurrentStep('completed');
@@ -285,13 +298,27 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 							Retour
 						</button>
 
-						<button
-							onClick={handleNextStep}
-							className="px-6 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 hover:shadow-lg transition-all duration-200 flex items-center gap-2"
-						>
-							<FaUpload />
-							Commencer l'upload
-						</button>
+						<div className="flex flex-col items-end gap-2">
+							{!allQualitiesReady && (
+								<div className="text-sm text-amber-600">
+									⏳ Génération des qualités en cours...
+								</div>
+							)}
+							<button
+								onClick={handleNextStep}
+								disabled={!allQualitiesReady}
+								className={`
+									px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2
+									${allQualitiesReady
+										? 'bg-green-500 text-white hover:bg-green-600 hover:shadow-lg'
+										: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+									}
+								`}
+							>
+								<FaUpload />
+								{allQualitiesReady ? 'Commencer l\'upload' : 'Préparation en cours...'}
+							</button>
+						</div>
 					</div>
 				</div>
 			)}
