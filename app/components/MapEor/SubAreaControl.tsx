@@ -3,30 +3,31 @@ import { useEffect } from "react";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
 import { useMap as useLeafletMap } from "react-leaflet";
+import { useGameMap } from "@/app/providers/GameMapContextProvider";
 import { useMap } from "@/app/providers/MapContextProvider";
 import { useLocale } from "@/app/providers/LocalContextProvider";
 import { getMapById } from "@/lib/utils/getMapById";
 
 function SubAreaContent({
     currentMap,
-    maps,
+    availableMaps,
     setCurrentMapById,
-    changeMapEnabled,
     locale,
+    useGameContext,
 }: {
-    currentMap: ReturnType<typeof useMap>["currentMap"];
-    maps: ReturnType<typeof useMap>["maps"];
-    setCurrentMapById: ReturnType<typeof useMap>["setCurrentMapById"];
-    changeMapEnabled: ReturnType<typeof useMap>["changeMapEnabled"];
+    currentMap: any;
+    availableMaps: any[];
+    setCurrentMapById: (mapId: string | null) => void;
     locale: string;
+    useGameContext: boolean;
 }) {
     if (!currentMap) return null;
 
     return (
         <div className="text-right text-slate-100 p-2 pl-7 text-sm relative top-5">
             <div className="absolute z-10 top-0 w-full h-full left-0 blur-sm bg-gradient-to-l from-black/40 via-black/40 via-20% to-transparent"></div>
-            {currentMap.subAreas?.map((subAreaId) => {
-                const subMap = getMapById(maps, subAreaId);
+            {currentMap.subAreas?.map((subAreaId: string) => {
+                const subMap = getMapById(availableMaps, subAreaId);
                 const name = subMap?.name[locale as keyof typeof subMap.name] || "Unknown";
                 const active = currentMap.id === subAreaId;
 
@@ -35,7 +36,7 @@ function SubAreaContent({
                         key={subAreaId}
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={() => {
-                            if (!active && changeMapEnabled) setCurrentMapById(subAreaId);
+                            if (!active) setCurrentMapById(subAreaId);
                         }}
                     >
 
@@ -52,8 +53,15 @@ function SubAreaContent({
     );
 }
 
-export default function SubAreaControl() {
-    const { currentMap, maps, setCurrentMapById, changeMapEnabled } = useMap();
+export default function SubAreaControl({ useGameContext = false }: { useGameContext?: boolean }) {
+    // Use the appropriate context based on the prop
+    const gameContext = useGameContext ? useGameMap() : null;
+    const adminContext = !useGameContext ? useMap() : null;
+    
+    const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
+    const setCurrentMapById = useGameContext ? gameContext!.setCurrentMapById : adminContext!.setCurrentMapById;
+    const availableMaps = useGameContext ? gameContext!.availableMaps : adminContext!.maps;
+    
     const map = useLeafletMap();
     const { locale } = useLocale();
 
@@ -69,10 +77,10 @@ export default function SubAreaControl() {
             root.render(
                 <SubAreaContent
                     currentMap={currentMap}
-                    maps={maps}
+                    availableMaps={availableMaps}
                     setCurrentMapById={setCurrentMapById}
-                    changeMapEnabled={changeMapEnabled}
                     locale={locale}
+                    useGameContext={useGameContext}
                 />
             );
 
@@ -84,7 +92,7 @@ export default function SubAreaControl() {
         return () => {
             control.remove();
         };
-    }, [currentMap, maps, locale, map, setCurrentMapById, changeMapEnabled]);
+    }, [currentMap, availableMaps, locale, map, setCurrentMapById, useGameContext]);
 
     return null;
 }

@@ -1,6 +1,7 @@
 import { invLerp, lerp } from "@/lib/utils/lerp";
 import { useEffect, useMemo, useState } from "react";
 import { useMap as useLeafletMap } from "react-leaflet";
+import { useGameMap } from "@/app/providers/GameMapContextProvider";
 import { useMap } from "@/app/providers/MapContextProvider";
 import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
@@ -129,8 +130,15 @@ function ZoomSliderComponent({
     );
 }
 
-export default function MapControl() {
-    const { currentMap, setCurrentMapById, maps } = useMap();
+export default function MapControl({ useGameContext = false }: { useGameContext?: boolean }) {
+    // Use the appropriate context based on the prop
+    const gameContext = useGameContext ? useGameMap() : null;
+    const adminContext = !useGameContext ? useMap() : null;
+    
+    const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
+    const setCurrentMapById = useGameContext ? gameContext!.setCurrentMapById : adminContext!.setCurrentMapById;
+    const availableMaps = useGameContext ? gameContext!.availableMaps : adminContext!.maps;
+    
     const leafletMap = useLeafletMap();
 
     useEffect(() => {
@@ -150,7 +158,7 @@ export default function MapControl() {
                     leafletMap={leafletMap}
                     currentMap={currentMap}
                     setCurrentMapById={setCurrentMapById}
-                    maps={maps}
+                    maps={availableMaps}
                 />
             );
 

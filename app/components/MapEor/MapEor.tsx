@@ -4,6 +4,7 @@ import { MapContainer, Polygon, ImageOverlay } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import React, { useState } from "react";
+import { useGameMap } from "@/app/providers/GameMapContextProvider";
 import { useMap } from "@/app/providers/MapContextProvider";
 import MapControl from "./MapControl";
 import SubAreaControl from "./SubAreaControl";
@@ -17,12 +18,21 @@ import getZoomFromMap from "@/lib/utils/getZoomFromMap";
 export default function MapEor({
     showPolygonsEditor = false,
     dragMode = false,
+    fixed = false,
+    useGameContext = false,
 }: {
     showPolygonsEditor?: boolean;
     dragMode?: boolean;
+    fixed?: boolean;
+    useGameContext?: boolean;
 }) {
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-    const { currentMap } = useMap();
+    
+    // Use the appropriate context based on the prop
+    const gameContext = useGameContext ? useGameMap() : null;
+    const adminContext = !useGameContext ? useMap() : null;
+    
+    const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
 
     const bounds = getBoundsFromMap(currentMap);
 
@@ -47,8 +57,11 @@ export default function MapEor({
     const baseUrl = process.env.NEXT_PUBLIC_S3_BUCKET_URL || "";
     const imageUrl = `${baseUrl}/maps/${currentMap.imagePath}`;
 
+    const baseClasses = "aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-lg";
+    const positionClasses = fixed ? "fixed bottom-4 right-4 z-50" : "relative";
+
     return (
-        <div className="aspect-square overflow-hidden w-[30rem] h-[30rem] pointer-events-auto shadow-[0px_0px_30px_black,0px_0px_30px_black] border-2 border-x-[#c0a270] border-y-[#e0c290] rounded-lg relative">
+        <div className={`${baseClasses} ${positionClasses}`}>
             <div className="absolute inset-0 pointer-events-none shadow-[inset_0px_0px_20px_rgba(0,0,0,0.5)] rounded z-[1000]"></div>
             <MapContainer
                 maxBounds={maxBounds}
@@ -66,8 +79,8 @@ export default function MapEor({
                 maxZoom={5}
             >
                 <MapMouseTracker />
-                <MapControl />
-                <SubAreaControl />
+                <MapControl useGameContext={useGameContext} />
+                <SubAreaControl useGameContext={useGameContext} />
                 {currentMap.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
                 <PolygonsEditor visible={showPolygonsEditor} />
                 {currentMap.markers?.map((marker, idx) => (

@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { GameStep } from "@/lib/types/common/GameStep";
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
 import { useGame } from "@/app/providers/GameContextProvider";
+import { GameMapProvider } from "@/app/providers/GameMapContextProvider";
 import { Expansion } from "@/lib/types/Expansion";
 import { MapType } from "@/lib/types/MapType";
+import MapEor from "@/app/components/MapEor/MapEor";
 
 export default function GameCucu() {
     const { room, gameState } = useGame();
@@ -164,36 +166,42 @@ export default function GameCucu() {
 
             {/* Game Playing */}
             {gameState.gameStep === GameStep.PLAYING && (
-                <div className="bg-white rounded-lg shadow-md p-4">
-                    <h3 className="text-xl font-semibold mb-4">
-                        Jeu en cours - Round {gameState.currentRound}/{gameState.maxRounds}
-                    </h3>
-                    
-                    {gameState.currentPhotosphere && gameState.currentPhotosphere.id && (
-                        <div className="mb-4">
-                            <div className="mb-2">
-                                <span className="text-sm text-gray-600">
-                                    Photosphère: {gameState.currentPhotosphere.mapName} ({gameState.currentPhotosphere.expansion})
-                                </span>
-                                <br />
-                                <span className="text-xs text-gray-500">
-                                    Météo: {gameState.currentPhotosphere.weather} | Heure: {gameState.currentPhotosphere.time}
-                                </span>
+                <GameMapProvider>
+                    <div className="bg-white rounded-lg shadow-md p-4">
+                        <h3 className="text-xl font-semibold mb-4">
+                            Jeu en cours - Round {gameState.currentRound}/{gameState.maxRounds}
+                        </h3>
+                        
+                        {/* Photosphere Section */}
+                        {gameState.currentPhotosphere && gameState.currentPhotosphere.id && (
+                            <div className="mb-4">
+                                <div className="mb-2">
+                                    <span className="text-sm text-gray-600">
+                                        Photosphère: {gameState.currentPhotosphere.mapName} ({gameState.currentPhotosphere.expansion})
+                                    </span>
+                                    <br />
+                                    <span className="text-xs text-gray-500">
+                                        Météo: {gameState.currentPhotosphere.weather} | Heure: {gameState.currentPhotosphere.time}
+                                    </span>
+                                </div>
+                                <ReactPhotoSphereViewer
+                                    src={`${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/photospheres/${gameState.currentPhotosphere.id}/panorama_medium.webp`}
+                                    height={"70vh"}
+                                    width={"100%"}
+                                />
                             </div>
-                            <ReactPhotoSphereViewer
-                                src={`${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/photospheres/${gameState.currentPhotosphere.id}/panorama_medium.webp`}
-                                height={"50vh"}
-                                width={"100%"}
-                            />
-                        </div>
-                    )}
-                    
-                    {(!gameState.currentPhotosphere || !gameState.currentPhotosphere.id) && (
-                        <div className="text-center py-8 text-gray-500">
-                            Chargement de la photosphère...
-                        </div>
-                    )}
-                </div>
+                        )}
+                        
+                        {(!gameState.currentPhotosphere || !gameState.currentPhotosphere.id) && (
+                            <div className="text-center py-8 text-gray-500">
+                                Chargement de la photosphère...
+                            </div>
+                        )}
+
+                        {/* Map is now positioned absolutely at bottom right */}
+                        <MapEor fixed={true} useGameContext={true} />
+                    </div>
+                </GameMapProvider>
             )}
         </div>
     );
