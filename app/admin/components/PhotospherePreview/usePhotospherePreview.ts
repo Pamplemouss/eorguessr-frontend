@@ -11,10 +11,12 @@ interface Photosphere {
     metadata?: {
         map: string;
         weather: string;
-        x: number;
-        y: number;
-        z: number;
-        time: number;
+        coord: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        time: string;
         uploadedAt?: string;
     };
     variants?: {
