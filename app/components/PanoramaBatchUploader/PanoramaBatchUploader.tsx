@@ -122,10 +122,10 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
             className="bg-blue-500 h-2 rounded-full transition-all duration-300"
             style={{ 
               width: `${
-                currentStep === 'selection' ? 20 : 
-                currentStep === 'thumbnails' ? 40 : 
-                currentStep === 'summary' ? 60 : 
-                currentStep === 'uploading' ? 80 : 
+                currentStep === 'selection' ? 0 : 
+                currentStep === 'thumbnails' ? 25 : 
+                currentStep === 'summary' ? 50 : 
+                currentStep === 'uploading' ? 75 : 
                 100
               }%` 
             }}

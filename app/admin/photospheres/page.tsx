@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { FaImage, FaUpload, FaList } from "react-icons/fa";
-import PhotosphereUpload from "./components/PhotosphereUpload";
 import PhotosphereList from "./components/PhotosphereList";
 import PhotospherePreview from "./components/PhotospherePreview";
 import PhotosphereStats from "./components/PhotosphereStats";
@@ -56,12 +55,7 @@ export default function AdminPhotospheresPage() {
         }
     }, [activeTab]);
 
-    const handlePhotosphereAdded = (newPhotosphere: Photosphere) => {
-        setPhotospheres(prev => [...prev, newPhotosphere]);
-        setSelectedPhotosphere(newPhotosphere);
-        // Optionally switch to library tab to see the new upload
-        // setActiveTab('library');
-    };
+
 
     const handleBatchUploadComplete = (uploadedFiles: string[]) => {
         console.log('Batch upload completed:', uploadedFiles);
@@ -117,7 +111,7 @@ export default function AdminPhotospheresPage() {
             id: 'upload' as TabType, 
             label: 'Upload', 
             icon: <FaUpload />,
-            description: 'Upload simple ou en lot'
+            description: 'Télécharger des photosphères'
         },
         { 
             id: 'library' as TabType, 
@@ -175,39 +169,8 @@ export default function AdminPhotospheresPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Upload Tab */}
                 {activeTab === 'upload' && (
-                    <div className="space-y-8">
-                        {/* Upload Section Header */}
-                        <div className="text-center mb-8">
-                            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                                Upload de photosphères
-                            </h2>
-                            <p className="text-gray-600">
-                                Choisissez entre un upload simple ou un upload en lot avec traitement automatique
-                            </p>
-                        </div>
-
-                        {/* Upload Options */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Single Upload */}
-                            <div className="space-y-6">
-                                <div className="text-center">
-                                    <h3 className="text-lg font-medium text-gray-800 mb-2">Upload Simple</h3>
-                                    <p className="text-sm text-gray-600">Upload une photosphère à la fois</p>
-                                </div>
-                                <PhotosphereUpload onPhotosphereAdded={handlePhotosphereAdded} />
-                            </div>
-
-                            {/* Batch Upload */}
-                            <div className="space-y-6">
-                                <div className="text-center">
-                                    <h3 className="text-lg font-medium text-gray-800 mb-2">Upload en Lot</h3>
-                                    <p className="text-sm text-gray-600">Upload multiple avec miniatures automatiques</p>
-                                </div>
-                                <div className="bg-white rounded-lg shadow-md p-6">
-                                    <PanoramaBatchUploader onComplete={handleBatchUploadComplete} />
-                                </div>
-                            </div>
-                        </div>
+                    <div className="max-w-6xl mx-auto">
+                        <PanoramaBatchUploader onComplete={handleBatchUploadComplete} />
                     </div>
                 )}
 
