@@ -18,13 +18,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const { fileName, fileType } = req.body;
+        const { fileName, fileType, customKey } = req.body;
 
         if (!fileName || !fileType) {
             return res.status(400).json({ error: 'Missing fileName or fileType' });
         }
 
-        const key = `photospheres/${crypto.randomUUID()}__${fileName}`;
+        // Use custom key if provided, otherwise generate default key
+        const key = customKey || `photospheres/${crypto.randomUUID()}__${fileName}`;
 
         const command = new PutObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET!,

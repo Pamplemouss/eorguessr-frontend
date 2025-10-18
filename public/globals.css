@@ -108,3 +108,32 @@
     border-radius: 2px;
     color: transparent;
 }
+
+/* Photosphere Viewer Styles */
+.photosphere-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.photosphere-container .psv-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.photosphere-container .psv-canvas-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Ensure photosphere controls are properly styled */
+.psv-navbar {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+.psv-button {
+    color: white !important;
+}
+
+.psv-button:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
