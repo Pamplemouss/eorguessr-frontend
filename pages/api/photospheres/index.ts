@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { S3Client, ListObjectsV2Command, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, HeadObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION!,
@@ -9,6 +9,16 @@ const s3 = new S3Client({
     },
 });
 
+interface PanoramaMetadata {
+    map: string;
+    weather: string;
+    x: number;
+    y: number;
+    z: number;
+    time: number;
+    uploadedAt: string;
+}
+
 interface Photosphere {
     id: string;
     name: string;
@@ -17,6 +27,7 @@ interface Photosphere {
     size: number;
     totalStorage: number;
     thumbnailUrl?: string;
+    metadata?: PanoramaMetadata;
     variants?: {
         panorama_thumbnail?: string;
         light?: string;
@@ -67,12 +78,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (files.length === 0) continue;
 
             // Find different file types
-            const thumbnailFile = files.find(f => f.Key?.includes('thumbnail.webp'));
+            const thumbnailFile = files.find(f => f.Key?.endsWith('thumbnail.webp') && !f.Key?.includes('panorama_thumbnail'));
             const panoramaThumbnailFile = files.find(f => f.Key?.includes('panorama_thumbnail.webp'));
             const lightFile = files.find(f => f.Key?.includes('panorama_light.webp'));
             const mediumFile = files.find(f => f.Key?.includes('panorama_medium.webp'));
             const heavyFile = files.find(f => f.Key?.includes('panorama_heavy.webp'));
             const originalFile = files.find(f => f.Key?.includes('panorama_original.webp'));
+            const metadataFile = files.find(f => f.Key?.includes('metadata.json'));
+
+            // Fetch metadata if available
+            let metadata: PanoramaMetadata | undefined;
+            if (metadataFile && metadataFile.Key) {
+                try {
+                    const getMetadataCommand = new GetObjectCommand({
+                        Bucket: bucketName,
+                        Key: metadataFile.Key,
+                    });
+                    const metadataResponse = await s3.send(getMetadataCommand);
+                    if (metadataResponse.Body) {
+                        const metadataText = await metadataResponse.Body.transformToString();
+                        metadata = JSON.parse(metadataText) as PanoramaMetadata;
+                    }
+                } catch (error) {
+                    console.warn(`Failed to fetch metadata for ${panoramaId}:`, error);
+                }
+            }
 
             // Use medium quality as main URL, fallback to original, then any available
             const mainFile = mediumFile || originalFile || lightFile || heavyFile || panoramaThumbnailFile || files[0];
@@ -104,6 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 size: fileSize, // Keep original size for compatibility
                 totalStorage, // Add total storage for all files
                 thumbnailUrl: thumbnailFile ? `${baseUrl}/${thumbnailFile.Key}` : undefined,
+                metadata, // Add metadata if available
                 variants: {
                     panorama_thumbnail: panoramaThumbnailFile ? `${baseUrl}/${panoramaThumbnailFile.Key}` : undefined,
                     light: lightFile ? `${baseUrl}/${lightFile.Key}` : undefined,

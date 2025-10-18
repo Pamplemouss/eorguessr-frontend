@@ -6,7 +6,10 @@ import {
 	FaHdd,
 	FaCompressArrowsAlt,
 	FaCheck,
-	FaImage
+	FaImage,
+	FaMapMarkerAlt,
+	FaCloud,
+	FaClock
 } from 'react-icons/fa';
 import { PanoramaFile, BatchUploadSummary, QUALITY_CONFIGS } from '@/lib/types/PanoramaBatch';
 import { formatFileSize } from '@/lib/utils/panoramaUtils';
@@ -113,7 +116,7 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 								</div>
 							</div>
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								{/* Selected Thumbnail */}
 								<div>
 									<label className="text-sm font-semibold text-gray-600 mb-2 block">
@@ -133,6 +136,62 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 										</div>
 									)}
 								</div>
+
+								{/* Metadata Information */}
+								{panoramaFile.metadata && (
+									<div>
+										<label className="text-sm font-semibold text-gray-600 mb-2 block">
+											Métadonnées extraites
+										</label>
+										<div className="space-y-2 text-sm">
+											<div className="flex items-center gap-2">
+												<FaMapMarkerAlt className="text-blue-500" />
+												<span className="font-medium">Carte:</span>
+												<span className="text-gray-700">{panoramaFile.metadata.map}</span>
+											</div>
+											<div className="flex items-center gap-2">
+												<FaCloud className="text-sky-500" />
+												<span className="font-medium">Météo:</span>
+												<span className="text-gray-700">{panoramaFile.metadata.weather}</span>
+											</div>
+											<div className="flex items-center gap-2">
+												<FaMapMarkerAlt className="text-green-500" />
+												<span className="font-medium">X:</span>
+												<span className="text-gray-700">{panoramaFile.metadata.x.toFixed(2)}</span>
+											</div>
+											<div className="flex items-center gap-2">
+												<FaMapMarkerAlt className="text-green-500" />
+												<span className="font-medium">Y:</span>
+												<span className="text-gray-700">{panoramaFile.metadata.y.toFixed(2)}</span>
+											</div>
+											<div className="flex items-center gap-2">
+												<FaMapMarkerAlt className="text-green-500" />
+												<span className="font-medium">Z:</span>
+												<span className="text-gray-700">{panoramaFile.metadata.z.toFixed(2)}</span>
+											</div>
+											<div className="flex items-center gap-2">
+												<FaClock className="text-amber-500" />
+												<span className="font-medium">Temps:</span>
+												<span className="text-gray-700">{panoramaFile.metadata.time.toString().padStart(4, '0')}</span>
+											</div>
+										</div>
+									</div>
+								)}
+								
+								{!panoramaFile.metadata && (
+									<div>
+										<label className="text-sm font-semibold text-gray-600 mb-2 block">
+											Métadonnées
+										</label>
+										<div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-3">
+											⚠️ Impossible d'extraire les métadonnées du nom de fichier.
+											<br />
+											<span className="text-xs text-amber-700">
+												Format attendu: ZoneName_Weather_X_Y_Z_IngameTime.webp
+											</span>
+										</div>
+									</div>
+								)}
 
 								{/* Quality Versions */}
 								<div>
@@ -198,7 +257,13 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 								<div>├── panorama_light.webp</div>
 								<div>├── panorama_medium.webp</div>
 								<div>├── panorama_heavy.webp</div>
-								<div>└── panorama_original.webp</div>
+								<div>├── panorama_original.webp</div>
+								{panoramaFile.metadata && (
+									<div>└── metadata.json</div>
+								)}
+								{!panoramaFile.metadata && (
+									<div className="text-amber-600">└── metadata.json (manquant)</div>
+								)}
 							</div>
 						</div>
 					))}
@@ -211,9 +276,14 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 
 				<div className="mt-4 text-sm text-gray-600">
 					<p>
-						Chaque panorama sera uploadé avec ses 4 versions de qualité plus une miniature représentative.
-						Total estimé : <strong>{panoramaFiles.length * 5} fichiers</strong>
+						Chaque panorama sera uploadé avec ses 4 versions de qualité, une miniature et ses métadonnées.
+						Total estimé : <strong>{panoramaFiles.reduce((total, pf) => total + (pf.metadata ? 6 : 5), 0)} fichiers</strong>
 					</p>
+					{panoramaFiles.some(pf => !pf.metadata) && (
+						<p className="text-amber-600 mt-2">
+							⚠️ Certains fichiers n'ont pas de métadonnées extraites. Vérifiez le format des noms de fichiers.
+						</p>
+					)}
 				</div>
 			</div>
 		</div>

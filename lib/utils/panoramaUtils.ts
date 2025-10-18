@@ -169,3 +169,75 @@ export const formatFileSize = (bytes: number): string => {
 export const generatePanoramaId = (): string => {
 	return crypto.randomUUID();
 };
+
+/**
+ * Panorama metadata extracted from filename
+ */
+export interface PanoramaMetadata {
+	map: string;
+	weather: string;
+	x: number;
+	y: number;
+	z: number;
+	time: number;
+	uploadedAt?: string; // Optional since it's added during upload, not parsing
+}
+
+/**
+ * Parse filename to extract panorama metadata
+ * Expected format: ZoneName_Weather_X_Y_Z_IngameTime.webp
+ * Example: "New Gridania_Fair Skies_9.11_11.68_0.00_1457.webp"
+ */
+export const parseFilenameMetadata = (filename: string): PanoramaMetadata | null => {
+	try {
+		// Remove file extension
+		const nameWithoutExt = filename.replace(/\.(webp|jpg|jpeg|png)$/i, '');
+		
+		// Split by underscore to get parts
+		const parts = nameWithoutExt.split('_');
+		
+		// We need at least 6 parts: ZoneName, Weather, X, Y, Z, IngameTime
+		if (parts.length < 6) {
+			console.warn(`Filename "${filename}" does not match expected format: ZoneName_Weather_X_Y_Z_IngameTime`);
+			return null;
+		}
+		
+		// Extract the last 4 parts which are always X, Y, Z, IngameTime
+		const time = parseFloat(parts[parts.length - 1]);
+		const z = parseFloat(parts[parts.length - 2]);
+		const y = parseFloat(parts[parts.length - 3]);
+		const x = parseFloat(parts[parts.length - 4]);
+		
+		// Validate that coordinates and time are valid numbers
+		if (isNaN(x) || isNaN(y) || isNaN(z) || isNaN(time)) {
+			console.warn(`Filename "${filename}" contains invalid coordinate or time values`);
+			return null;
+		}
+		
+		// Everything before the last 4 parts contains zone name and weather
+		const nameAndWeatherParts = parts.slice(0, -4);
+		
+		if (nameAndWeatherParts.length < 2) {
+			console.warn(`Filename "${filename}" does not contain both zone name and weather`);
+			return null;
+		}
+		
+		// Simple approach: assume the last part before coordinates is weather
+		// and everything before that is zone name
+		const weather = nameAndWeatherParts[nameAndWeatherParts.length - 1];
+		const map = nameAndWeatherParts.slice(0, -1).join(' ');
+		
+		return {
+			map: map.trim(),
+			weather: weather.trim(),
+			x,
+			y,
+			z,
+			time
+		};
+		
+	} catch (error) {
+		console.error(`Error parsing filename "${filename}":`, error);
+		return null;
+	}
+};

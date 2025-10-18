@@ -10,7 +10,8 @@ import {
 import {
 	generateThumbnailsFromPanorama,
 	generateQualityVersions,
-	generatePanoramaId
+	generatePanoramaId,
+	parseFilenameMetadata
 } from '@/lib/utils/panoramaUtils';
 
 interface UsePanoramaUploaderReturn {
@@ -42,9 +43,13 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 		const newPanoramaFiles: PanoramaFile[] = [];
 
 		for (const file of files) {
+			// Extract metadata from filename
+			const metadata = parseFilenameMetadata(file.name);
+			
 			const panoramaFile: PanoramaFile = {
 				id: generatePanoramaId(),
 				file,
+				metadata,
 				thumbnails: [],
 				selectedThumbnailIndex: 0,
 				qualities: {},
@@ -131,7 +136,7 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 		const panoId = panoramaFile.id;
 		const baseKey = `photospheres/${panoId}`;
 
-		// Files to upload: thumbnail + all quality versions
+		// Files to upload: thumbnail + all quality versions + metadata
 		const filesToUpload: { key: string; blob: Blob; type: string }[] = [];
 
 		// Add thumbnail
@@ -159,6 +164,26 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 				});
 			}
 		});
+
+		// Add metadata.json if metadata exists
+		if (panoramaFile.metadata) {
+			// Add uploadedAt field with current date in dd/mm/yyyy format
+			const currentDate = new Date();
+			const uploadedAt = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
+			
+			const metadataWithUploadDate = {
+				...panoramaFile.metadata,
+				uploadedAt
+			};
+			
+			const metadataJson = JSON.stringify(metadataWithUploadDate, null, 2);
+			const metadataBlob = new Blob([metadataJson], { type: 'application/json' });
+			filesToUpload.push({
+				key: `${baseKey}/metadata.json`,
+				blob: metadataBlob,
+				type: 'metadata'
+			});
+		}
 
 		// Initialize progress tracking
 		const progressEntries: UploadProgress[] = filesToUpload.map(({ type }) => ({
@@ -189,7 +214,7 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						fileName: key.split('/').pop(),
-						fileType: blob.type || 'image/webp',
+						fileType: blob.type || (type === 'metadata' ? 'application/json' : 'image/webp'),
 						customKey: key
 					})
 				});
@@ -203,7 +228,7 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 				// Upload to S3
 				const uploadRes = await fetch(uploadUrl, {
 					method: 'PUT',
-					headers: { 'Content-Type': blob.type || 'image/webp' },
+					headers: { 'Content-Type': blob.type || (type === 'metadata' ? 'application/json' : 'image/webp') },
 					body: blob
 				});
 
@@ -274,8 +299,8 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 		totalFiles: panoramaFiles.length,
 		totalSize: panoramaFiles.reduce((sum, pf) => sum + pf.file.size, 0),
 		estimatedCompressedSize: panoramaFiles.reduce((sum, pf) => {
-			// Total estimated size for all quality variants of this file is 120% of original
-			return sum + Math.round(pf.file.size * 1.2);
+			// Total estimated size for all quality variants of this file is 123% of original
+			return sum + Math.round(pf.file.size * 1.23);
 		}, 0),
 		readyFiles: panoramaFiles.filter(pf => {
 			// Check if file is ready and has thumbnails

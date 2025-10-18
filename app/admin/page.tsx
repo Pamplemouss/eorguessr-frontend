@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaImage, FaUpload, FaList, FaMap, FaMapMarkedAlt, FaCog } from "react-icons/fa";
+import { FaUpload, FaList, FaMap, FaCog } from "react-icons/fa";
 import PanoramaBatchUploader from "@/app/components/PanoramaBatchUploader/PanoramaBatchUploader";
 import PhotosphereList from "./components/PhotosphereList";
 import PhotospherePreview from "./components/PhotospherePreview";
@@ -22,6 +22,15 @@ interface Photosphere {
     uploadDate: Date | string;
     size: number;
     thumbnailUrl?: string;
+    metadata?: {
+        map: string;
+        weather: string;
+        x: number;
+        y: number;
+        z: number;
+        time: number;
+        uploadedAt?: string;
+    };
     variants?: {
         panorama_thumbnail?: string;
         light?: string;

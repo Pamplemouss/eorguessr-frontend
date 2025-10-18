@@ -7,7 +7,8 @@ import {
   FaExclamationTriangle,
   FaFile,
   FaImage,
-  FaUpload
+  FaUpload,
+  FaFileCode
 } from 'react-icons/fa';
 import { PanoramaFile, UploadProgress as UploadProgressType } from '@/lib/types/PanoramaBatch';
 import { formatFileSize } from '@/lib/utils/panoramaUtils';
@@ -56,6 +57,8 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ panoramaFiles, uploadPr
     switch (type) {
       case 'thumbnail':
         return <FaImage className="text-purple-500" />;
+      case 'metadata':
+        return <FaFileCode className="text-orange-500" />;
       default:
         return <FaUpload className="text-blue-500" />;
     }
@@ -69,6 +72,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ panoramaFiles, uploadPr
       case 'medium': return 'Qualité moyenne';
       case 'heavy': return 'Qualité lourde';
       case 'original': return 'Original';
+      case 'metadata': return 'Métadonnées';
       default: return type;
     }
   };

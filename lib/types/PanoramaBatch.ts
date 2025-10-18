@@ -1,6 +1,9 @@
+import { PanoramaMetadata } from '@/lib/utils/panoramaUtils';
+
 export interface PanoramaFile {
   id: string;
   file: File;
+  metadata: PanoramaMetadata | null;
   thumbnails: Blob[];
   selectedThumbnailIndex: number;
   qualities: {
@@ -25,7 +28,7 @@ export interface QualityConfig {
 export interface UploadProgress {
   fileId: string;
   fileName: string;
-  type: 'thumbnail' | 'panorama_thumbnail' | 'light' | 'medium' | 'heavy' | 'original';
+  type: 'thumbnail' | 'panorama_thumbnail' | 'light' | 'medium' | 'heavy' | 'original' | 'metadata';
   status: 'pending' | 'uploading' | 'completed' | 'error';
   progress: number;
 }
