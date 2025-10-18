@@ -11,14 +11,24 @@ export const generateThumbnailsFromPanorama = async (
 ): Promise<Blob[]> => {
 	return new Promise((resolve, reject) => {
 		const img = new Image();
+		img.crossOrigin = 'anonymous'; // Enable cross-origin to avoid canvas tainting
 		img.onload = () => {
 			try {
 				const thumbnails: Blob[] = [];
 				const canvas = document.createElement('canvas');
-				const renderer = new THREE.WebGLRenderer({ canvas, preserveDrawingBuffer: true });
+				const renderer = new THREE.WebGLRenderer({ 
+					canvas, 
+					preserveDrawingBuffer: true,
+					antialias: true,
+					powerPreference: "high-performance"
+				});
 
 				renderer.setSize(thumbnailSize.width, thumbnailSize.height);
 				renderer.setPixelRatio(1);
+				// Ensure accurate color reproduction
+				renderer.outputColorSpace = THREE.SRGBColorSpace;
+				renderer.toneMapping = THREE.NoToneMapping; // Disable tone mapping
+				renderer.toneMappingExposure = 1.0;
 
 				// Create scene
 				const scene = new THREE.Scene();
@@ -29,18 +39,33 @@ export const generateThumbnailsFromPanorama = async (
 				// Invert the geometry on the x-axis so the image maps correctly
 				geometry.scale(-1, 1, 1);
 
-				// Create texture from the image
+				// Create texture from the image with proper color handling
 				const canvas2d = document.createElement('canvas');
-				const context = canvas2d.getContext('2d');
+				const context = canvas2d.getContext('2d', { 
+					colorSpace: 'srgb',
+					willReadFrequently: false 
+				});
 				canvas2d.width = img.width;
 				canvas2d.height = img.height;
-				context?.drawImage(img, 0, 0);
+				
+				if (context) {
+					// Disable image smoothing to preserve original pixel data
+					context.imageSmoothingEnabled = false;
+					context.drawImage(img, 0, 0);
+				}
 
 				const texture = new THREE.CanvasTexture(canvas2d);
+				texture.needsUpdate = true;
 				texture.wrapS = THREE.RepeatWrapping;
-				texture.repeat.x = -1;
+				texture.wrapT = THREE.ClampToEdgeWrapping;
+				// Set texture color space to match input
+				texture.colorSpace = THREE.SRGBColorSpace;
+				texture.generateMipmaps = false; // Disable mipmaps to preserve quality
 
-				const material = new THREE.MeshBasicMaterial({ map: texture });
+				const material = new THREE.MeshBasicMaterial({ 
+					map: texture,
+					toneMapped: false // Disable tone mapping to preserve original colors
+				});
 				const mesh = new THREE.Mesh(geometry, material);
 				scene.add(mesh);
 
@@ -58,7 +83,7 @@ export const generateThumbnailsFromPanorama = async (
 					// Render the scene
 					renderer.render(scene, camera);
 
-					// Capture the canvas as blob
+					// Capture the canvas as blob with PNG format for lossless quality
 					canvas.toBlob((blob) => {
 						if (blob) {
 							thumbnails[index] = blob;
@@ -74,7 +99,7 @@ export const generateThumbnailsFromPanorama = async (
 
 							resolve(thumbnails.filter(Boolean)); // Remove any null entries
 						}
-					}, 'image/webp', 0.8);
+					}, 'image/png'); // Use PNG for lossless compression
 				});
 
 			} catch (error) {
