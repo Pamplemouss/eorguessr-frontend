@@ -10,6 +10,15 @@ interface Photosphere {
     size: number;
     totalStorage?: number;
     thumbnailUrl?: string;
+    metadata?: {
+        map: string;
+        weather: string;
+        x: number;
+        y: number;
+        z: number;
+        time: number;
+        uploadedAt?: string;
+    };
     variants?: {
         panorama_thumbnail?: string;
         light?: string;
@@ -39,9 +48,15 @@ const PhotosphereList = ({
     const [search, setSearch] = useState("");
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
-    const filteredPhotospheres = photospheres.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredPhotospheres = photospheres.filter((p) => {
+        const mapName = p.metadata?.map || '';
+        const fileName = p.name || '';
+        const searchTerm = search.toLowerCase();
+        
+        return mapName.toLowerCase().includes(searchTerm) || 
+               fileName.toLowerCase().includes(searchTerm) ||
+               p.id.toLowerCase().includes(searchTerm);
+    });
 
     const handleDelete = async (id: string) => {
         if (confirm("Êtes-vous sûr de vouloir supprimer cette photosphère ? Cette action supprimera définitivement tous les fichiers associés du stockage S3.")) {
@@ -134,7 +149,7 @@ const PhotosphereList = ({
                                             
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="font-semibold text-gray-900 truncate">
-                                                    {photosphere.name}
+                                                    {photosphere.metadata?.map || photosphere.name} - {photosphere.id}
                                                 </h3>
                                                 <div className="flex items-center gap-2 text-sm text-gray-500">
                                                     <span>{formatFileSize(photosphere.size)}</span>
