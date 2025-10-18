@@ -105,6 +105,7 @@ Modify quality configurations in `lib/types/PanoramaBatch.ts`:
 
 ```typescript
 export const QUALITY_CONFIGS: QualityConfig[] = [
+  { name: 'panorama_thumbnail', maxWidth: 1024, quality: 30, suffix: 'panorama_thumbnail' },
   { name: 'light', maxWidth: 4096, quality: 60, suffix: 'light' },
   { name: 'medium', maxWidth: 8192, quality: 80, suffix: 'medium' },
   { name: 'heavy', maxWidth: 16384, quality: 95, suffix: 'heavy' },

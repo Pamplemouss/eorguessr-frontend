@@ -18,6 +18,7 @@ interface Photosphere {
     totalStorage: number;
     thumbnailUrl?: string;
     variants?: {
+        panorama_thumbnail?: string;
         light?: string;
         medium?: string;
         heavy?: string;
@@ -67,13 +68,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // Find different file types
             const thumbnailFile = files.find(f => f.Key?.includes('thumbnail.webp'));
+            const panoramaThumbnailFile = files.find(f => f.Key?.includes('panorama_thumbnail.webp'));
             const lightFile = files.find(f => f.Key?.includes('panorama_light.webp'));
             const mediumFile = files.find(f => f.Key?.includes('panorama_medium.webp'));
             const heavyFile = files.find(f => f.Key?.includes('panorama_heavy.webp'));
             const originalFile = files.find(f => f.Key?.includes('panorama_original.webp'));
 
             // Use medium quality as main URL, fallback to original, then any available
-            const mainFile = mediumFile || originalFile || lightFile || heavyFile || files[0];
+            const mainFile = mediumFile || originalFile || lightFile || heavyFile || panoramaThumbnailFile || files[0];
             
             if (!mainFile || !mainFile.Key) continue;
 
@@ -103,6 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 totalStorage, // Add total storage for all files
                 thumbnailUrl: thumbnailFile ? `${baseUrl}/${thumbnailFile.Key}` : undefined,
                 variants: {
+                    panorama_thumbnail: panoramaThumbnailFile ? `${baseUrl}/${panoramaThumbnailFile.Key}` : undefined,
                     light: lightFile ? `${baseUrl}/${lightFile.Key}` : undefined,
                     medium: mediumFile ? `${baseUrl}/${mediumFile.Key}` : undefined,
                     heavy: heavyFile ? `${baseUrl}/${heavyFile.Key}` : undefined,

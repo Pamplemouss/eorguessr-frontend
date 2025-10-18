@@ -17,6 +17,7 @@ import ThumbnailSelector from '@/app/components/PanoramaBatchUploader/ThumbnailS
 import BatchSummary from '@/app/components/PanoramaBatchUploader/BatchSummary';
 import UploadProgress from '@/app/components/PanoramaBatchUploader/UploadProgress';
 import { formatFileSize } from '@/lib/utils/panoramaUtils';
+import { QUALITY_CONFIGS } from '@/lib/types/PanoramaBatch';
 
 type Step = 'selection' | 'thumbnails' | 'summary' | 'uploading' | 'completed';
 
@@ -75,7 +76,7 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 		panoramaFiles.every(pf =>
 			pf.uploadStatus === 'ready' &&
 			pf.thumbnails.length > 0 &&
-			Object.keys(pf.qualities).length === 4 // All 4 quality configs
+			Object.keys(pf.qualities).length === QUALITY_CONFIGS.length // All quality configs
 		);
 
 	const handleNextStep = () => {

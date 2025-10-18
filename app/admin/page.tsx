@@ -23,6 +23,7 @@ interface Photosphere {
     size: number;
     thumbnailUrl?: string;
     variants?: {
+        panorama_thumbnail?: string;
         light?: string;
         medium?: string;
         heavy?: string;

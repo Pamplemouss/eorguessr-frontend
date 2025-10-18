@@ -13,6 +13,7 @@ interface PhotospherePreviewProps {
         totalStorage?: number;
         thumbnailUrl?: string;
         variants?: {
+            panorama_thumbnail?: string;
             light?: string;
             medium?: string;
             heavy?: string;
@@ -30,6 +31,8 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
     useEffect(() => {
         if (photosphere?.variants?.light) {
             setSelectedQuality('light');
+        } else if (photosphere?.variants?.panorama_thumbnail) {
+            setSelectedQuality('panorama_thumbnail');
         } else if (photosphere) {
             const availableQualities = getAvailableQualities();
             if (availableQualities.length > 0) {
@@ -74,7 +77,7 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
         if (selectedQuality === 'original') return photosphere.url;
         
         const variant = photosphere.variants?.[selectedQuality as keyof typeof photosphere.variants];
-        return variant || photosphere.variants?.light || photosphere.url;
+        return variant || photosphere.variants?.light || photosphere.variants?.panorama_thumbnail || photosphere.url;
     };
 
     const getAvailableQualities = () => {
@@ -82,6 +85,7 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
         
         const qualities = [];
         
+        if (photosphere.variants.panorama_thumbnail) qualities.push({ key: 'panorama_thumbnail', label: 'Miniature Panorama', url: photosphere.variants.panorama_thumbnail });
         if (photosphere.variants.light) qualities.push({ key: 'light', label: 'Léger', url: photosphere.variants.light });
         if (photosphere.variants.medium) qualities.push({ key: 'medium', label: 'Moyen', url: photosphere.variants.medium });
         if (photosphere.variants.heavy) qualities.push({ key: 'heavy', label: 'Lourd', url: photosphere.variants.heavy });

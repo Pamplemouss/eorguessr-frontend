@@ -64,6 +64,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ panoramaFiles, uploadPr
   const getUploadTypeLabel = (type: string) => {
     switch (type) {
       case 'thumbnail': return 'Miniature';
+      case 'panorama_thumbnail': return 'Miniature Panorama';
       case 'light': return 'Qualité légère';
       case 'medium': return 'Qualité moyenne';
       case 'heavy': return 'Qualité lourde';

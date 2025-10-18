@@ -99,7 +99,7 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 											<div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
 											<span className="text-sm font-medium text-blue-600">Génération en cours</span>
 										</>
-									) : Object.keys(panoramaFile.qualities).length === 4 ? (
+									) : Object.keys(panoramaFile.qualities).length === 5 ? (
 										<>
 											<FaCheck className="text-sm text-green-600" />
 											<span className="text-sm font-medium text-green-600">Toutes qualités prêtes</span>
@@ -152,6 +152,7 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
                             ${hasQuality ? 'text-gray-700' : 'text-gray-400'}
                           `}>
 														{config.name === 'original' ? 'Original' :
+															config.name === 'panorama_thumbnail' ? 'Miniature Panorama' :
 															config.name === 'light' ? 'Léger' :
 																config.name === 'medium' ? 'Moyen' : 'Lourd'}
 													</span>
@@ -193,6 +194,7 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 							<div>├── {panoramaFile.id}/</div>
 							<div className="ml-4">
 								<div>├── thumbnail.webp</div>
+								<div>├── panorama_thumbnail.webp</div>
 								<div>├── panorama_light.webp</div>
 								<div>├── panorama_medium.webp</div>
 								<div>├── panorama_heavy.webp</div>

@@ -11,6 +11,7 @@ interface Photosphere {
     totalStorage?: number;
     thumbnailUrl?: string;
     variants?: {
+        panorama_thumbnail?: string;
         light?: string;
         medium?: string;
         heavy?: string;

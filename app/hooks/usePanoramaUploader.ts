@@ -147,8 +147,13 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 		QUALITY_CONFIGS.forEach(config => {
 			const blob = panoramaFile.qualities[config.name];
 			if (blob) {
+				// Special handling for panorama_thumbnail to avoid double "panorama_" prefix
+				const fileName = config.name === 'panorama_thumbnail' 
+					? `panorama_thumbnail.webp`
+					: `panorama_${config.suffix}.webp`;
+				
 				filesToUpload.push({
-					key: `${baseKey}/panorama_${config.suffix}.webp`,
+					key: `${baseKey}/${fileName}`,
 					blob,
 					type: config.name
 				});
@@ -272,11 +277,18 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 			// Total estimated size for all quality variants of this file is 120% of original
 			return sum + Math.round(pf.file.size * 1.2);
 		}, 0),
-		readyFiles: panoramaFiles.filter(pf =>
-			pf.uploadStatus === 'ready' &&
-			pf.thumbnails.length > 0 &&
-			Object.keys(pf.qualities).length === 4 // All quality versions ready
-		).length
+		readyFiles: panoramaFiles.filter(pf => {
+			// Check if file is ready and has thumbnails
+			if (pf.uploadStatus !== 'ready' || pf.thumbnails.length === 0) {
+				return false;
+			}
+			
+			// Check if all expected quality variants are generated
+			const expectedQualities = QUALITY_CONFIGS.length;
+			const actualQualities = Object.keys(pf.qualities).length;
+			
+			return actualQualities === expectedQualities;
+		}).length
 	};
 
 	return {
