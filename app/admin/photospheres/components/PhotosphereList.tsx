@@ -18,7 +18,7 @@ interface Photosphere {
     };
 }
 
-interface PhotospherListProps {
+interface PhotosphereListProps {
     photospheres: Photosphere[];
     selectedPhotosphere: Photosphere | null;
     onSelectPhotosphere: (photosphere: Photosphere | null) => void;
@@ -27,14 +27,14 @@ interface PhotospherListProps {
     onRefresh?: () => void;
 }
 
-const PhotospherList = ({ 
+const PhotosphereList = ({ 
     photospheres, 
     selectedPhotosphere, 
     onSelectPhotosphere, 
     onDeletePhotosphere,
     loading = false,
     onRefresh
-}: PhotospherListProps) => {
+}: PhotosphereListProps) => {
     const [search, setSearch] = useState("");
 
     const filteredPhotospheres = photospheres.filter((p) =>
@@ -168,4 +168,4 @@ const PhotospherList = ({
     )
 }
 
-export default PhotospherList
+export default PhotosphereList

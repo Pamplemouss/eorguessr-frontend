@@ -2,7 +2,7 @@ import React from 'react'
 import { FaChartBar, FaImages, FaHdd, FaSpinner, FaLayerGroup } from 'react-icons/fa'
 import PhotosphereCard from './PhotosphereCard'
 
-interface PhotospeherStatsProps {
+interface PhotosphereStatsProps {
     photospheres: Array<{
         id: string;
         name: string;
@@ -21,7 +21,7 @@ interface PhotospeherStatsProps {
     loading?: boolean;
 }
 
-const PhotospeherStats = ({ photospheres, loading = false }: PhotospeherStatsProps) => {
+const PhotosphereStats = ({ photospheres, loading = false }: PhotosphereStatsProps) => {
     // Calculate cumulative storage using actual file sizes from S3
     const getTotalStorage = () => {
         return photospheres.reduce((acc, p) => {
@@ -115,4 +115,4 @@ const PhotospeherStats = ({ photospheres, loading = false }: PhotospeherStatsPro
     )
 }
 
-export default PhotospeherStats
+export default PhotosphereStats

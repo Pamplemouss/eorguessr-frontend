@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { FaImage, FaUpload, FaList } from "react-icons/fa";
-import PhotospherUpload from "./components/PhotospherUpload";
-import PhotospherList from "./components/PhotospherList";
-import PhotospeherPreview from "./components/PhotospeherPreview";
-import PhotospeherStats from "./components/PhotospeherStats";
+import PhotosphereUpload from "./components/PhotosphereUpload";
+import PhotosphereList from "./components/PhotosphereList";
+import PhotospherePreview from "./components/PhotospherePreview";
+import PhotosphereStats from "./components/PhotosphereStats";
 import PanoramaBatchUploader from "@/app/components/PanoramaBatchUploader/PanoramaBatchUploader";
 
 interface Photosphere {
@@ -160,7 +160,7 @@ export default function AdminPhotospheresPage() {
                                     <h3 className="text-lg font-medium text-gray-800 mb-2">Upload Simple</h3>
                                     <p className="text-sm text-gray-600">Upload une photosphère à la fois</p>
                                 </div>
-                                <PhotospherUpload onPhotosphereAdded={handlePhotosphereAdded} />
+                                <PhotosphereUpload onPhotosphereAdded={handlePhotosphereAdded} />
                             </div>
 
                             {/* Batch Upload */}
@@ -181,8 +181,8 @@ export default function AdminPhotospheresPage() {
                 {activeTab === 'library' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-1 space-y-6">
-                            <PhotospeherStats photospheres={photospheres} loading={loading} />
-                            <PhotospherList 
+                            <PhotosphereStats photospheres={photospheres} loading={loading} />
+                            <PhotosphereList 
                                 photospheres={photospheres}
                                 selectedPhotosphere={selectedPhotosphere}
                                 onSelectPhotosphere={setSelectedPhotosphere}
@@ -192,7 +192,7 @@ export default function AdminPhotospheresPage() {
                             />
                         </div>
                         <div className="lg:col-span-2">
-                            <PhotospeherPreview photosphere={selectedPhotosphere} />
+                            <PhotospherePreview photosphere={selectedPhotosphere} />
                         </div>
                     </div>
                 )}

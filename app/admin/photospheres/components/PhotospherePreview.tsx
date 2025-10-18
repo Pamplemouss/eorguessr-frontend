@@ -3,7 +3,7 @@ import { FaEye, FaDownload, FaInfoCircle, FaLayerGroup, FaExpand } from 'react-i
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer"
 import PhotosphereCard from './PhotosphereCard'
 
-interface PhotospeherPreviewProps {
+interface PhotospherePreviewProps {
     photosphere?: {
         id: string;
         name: string;
@@ -21,7 +21,7 @@ interface PhotospeherPreviewProps {
     } | null;
 }
 
-const PhotospeherPreview = ({ photosphere }: PhotospeherPreviewProps) => {
+const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
     const [selectedQuality, setSelectedQuality] = useState<string>('light');
     const [viewMode, setViewMode] = useState<'image' | 'sphere'>('sphere');
     const [showThumbnailModal, setShowThumbnailModal] = useState(false);
@@ -333,4 +333,4 @@ const PhotospeherPreview = ({ photosphere }: PhotospeherPreviewProps) => {
     )
 }
 
-export default PhotospeherPreview
+export default PhotospherePreview

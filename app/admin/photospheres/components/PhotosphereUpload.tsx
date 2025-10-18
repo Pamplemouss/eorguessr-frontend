@@ -17,11 +17,11 @@ interface Photosphere {
     size: number;
 }
 
-interface PhotospherUploadProps {
+interface PhotosphereUploadProps {
     onPhotosphereAdded: (photosphere: Photosphere) => void;
 }
 
-const PhotospherUpload = ({ onPhotosphereAdded }: PhotospherUploadProps) => {
+const PhotosphereUpload = ({ onPhotosphereAdded }: PhotosphereUploadProps) => {
     const [uploadStatus, setUploadStatus] = useState<UploadStatus>({ status: 'idle' });
     const [dragActive, setDragActive] = useState(false);
 
@@ -240,4 +240,4 @@ const PhotospherUpload = ({ onPhotosphereAdded }: PhotospherUploadProps) => {
     )
 }
 
-export default PhotospherUpload
+export default PhotosphereUpload
