@@ -22,7 +22,7 @@ interface PhotosphereListProps {
     photospheres: Photosphere[];
     selectedPhotosphere: Photosphere | null;
     onSelectPhotosphere: (photosphere: Photosphere | null) => void;
-    onDeletePhotosphere: (id: string) => void;
+    onDeletePhotosphere: (id: string) => Promise<void>;
     loading?: boolean;
     onRefresh?: () => void;
 }
@@ -36,16 +36,23 @@ const PhotosphereList = ({
     onRefresh
 }: PhotosphereListProps) => {
     const [search, setSearch] = useState("");
+    const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
     const filteredPhotospheres = photospheres.filter((p) =>
         p.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    const handleDelete = (id: string) => {
-        if (confirm("Êtes-vous sûr de vouloir supprimer cette photosphère ?")) {
-            onDeletePhotosphere(id);
-            if (selectedPhotosphere?.id === id) {
-                onSelectPhotosphere(null);
+    const handleDelete = async (id: string) => {
+        if (confirm("Êtes-vous sûr de vouloir supprimer cette photosphère ? Cette action supprimera définitivement tous les fichiers associés du stockage S3.")) {
+            setDeletingIds(prev => new Set(prev).add(id));
+            try {
+                await onDeletePhotosphere(id);
+            } finally {
+                setDeletingIds(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(id);
+                    return newSet;
+                });
             }
         }
     };
@@ -151,10 +158,11 @@ const PhotosphereList = ({
                                                     e.stopPropagation();
                                                     handleDelete(photosphere.id);
                                                 }}
-                                                className="p-1 text-red-600 hover:text-red-800 transition-colors"
-                                                title="Supprimer"
+                                                disabled={deletingIds.has(photosphere.id)}
+                                                className="p-1 text-red-600 hover:text-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                title={deletingIds.has(photosphere.id) ? "Suppression en cours..." : "Supprimer"}
                                             >
-                                                <FaTrash />
+                                                {deletingIds.has(photosphere.id) ? <FaSpinner className="animate-spin" /> : <FaTrash />}
                                             </button>
                                         </div>
                                     </div>
