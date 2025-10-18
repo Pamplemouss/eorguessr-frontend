@@ -4,7 +4,6 @@ import { createEmptyMap } from '@/lib/utils/createEmptyMap';
 import useFilterMaps from '@/lib/utils/useFilterMaps';
 import React, { useState } from 'react'
 import { FaPlus, FaMap } from 'react-icons/fa';
-import { FaMagnifyingGlass } from 'react-icons/fa6';
 
 const MapList = () => {
     const { maps, currentMap, setCurrentMapById, setCurrentMap } = useMap();
@@ -45,7 +44,7 @@ const MapList = () => {
             {filteredMaps.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">Aucune carte trouvée.</p>
             ) : (
-                <div className="max-h-64 overflow-y-auto">
+                <div className="max-h-[700px] overflow-y-auto">
                     <div className="space-y-2">
                         {filteredMaps.map((m) => (
                             <div

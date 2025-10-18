@@ -38,7 +38,7 @@ const AdminExpansionSelector = () => {
                 </button>
             </div>
 
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2 max-h-48 overflow-y-auto grid grid-cols-3">
                 {Object.values(Expansion).map((expansion) => (
                     <label
                         key={expansion}

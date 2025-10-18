@@ -9,7 +9,7 @@ const AdminMapTypeSelector = () => {
     const { selectedMapTypes, toggleMapType, setSelectedMapTypes } = useAdminMapConfig();
 
     const mapTypeLabels: Record<MapType, string> = {
-        [MapType.WORLD_MAP]: "Carte du monde",
+        [MapType.WORLD_MAP]: "World Map",
         [MapType.REGION]: "Région",
         [MapType.MAP]: "Carte",
         [MapType.DUNGEON]: "Donjon",
@@ -45,7 +45,7 @@ const AdminMapTypeSelector = () => {
                 </button>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 grid grid-cols-2">
                 {Object.values(MapType).map((mapType) => (
                     <label
                         key={mapType}

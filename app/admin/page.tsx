@@ -35,9 +35,9 @@ type TabType = 'photosphere-upload' | 'photosphere-library' | 'maps';
 export default function AdminPage() {
     const [photospheres, setPhotospheres] = useState<Photosphere[]>([]);
     const [selectedPhotosphere, setSelectedPhotosphere] = useState<Photosphere | null>(null);
-    const [activeTab, setActiveTab] = useState<TabType>('photosphere-upload');
+    const [activeTab, setActiveTab] = useState<TabType>('photosphere-library');
     const [loading, setLoading] = useState(false);
-    
+
     // Map related states
     const [showPolygonsEditor, setShowPolygonsEditor] = useState(false);
     const [dragMode, setDragMode] = useState(false);
@@ -93,7 +93,7 @@ export default function AdminPage() {
             console.log('Attempting to delete photosphere with ID:', id);
             const url = `/api/photospheres/${id}`;
             console.log('DELETE URL:', url);
-            
+
             const response = await fetch(url, {
                 method: 'DELETE',
             });
@@ -101,7 +101,7 @@ export default function AdminPage() {
             if (response.ok) {
                 const result = await response.json();
                 console.log('Photosphere deleted from S3:', result);
-                
+
                 // Remove from local state only after successful S3 deletion
                 setPhotospheres(prev => prev.filter(p => p.id !== id));
                 if (selectedPhotosphere?.id === id) {
@@ -130,21 +130,21 @@ export default function AdminPage() {
     };
 
     const tabs = [
-        { 
-            id: 'photosphere-upload' as TabType, 
-            label: 'Upload Photosphères', 
+        {
+            id: 'photosphere-upload' as TabType,
+            label: 'Upload Photosphères',
             icon: <FaUpload />,
             description: 'Télécharger des photosphères'
         },
-        { 
-            id: 'photosphere-library' as TabType, 
-            label: 'Bibliothèque', 
+        {
+            id: 'photosphere-library' as TabType,
+            label: 'Bibliothèque',
             icon: <FaList />,
             description: 'Gérer les photosphères existantes'
         },
-        { 
-            id: 'maps' as TabType, 
-            label: 'Cartes', 
+        {
+            id: 'maps' as TabType,
+            label: 'Cartes',
             icon: <FaMap />,
             description: 'Gérer les cartes'
         }
@@ -154,7 +154,7 @@ export default function AdminPage() {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-3">
                             <FaCog className="text-2xl text-purple-600" />
@@ -162,7 +162,7 @@ export default function AdminPage() {
                                 Administration Eorguessr
                             </h1>
                         </div>
-                        
+
                         <div className="text-sm text-gray-600">
                             {activeTab === 'photosphere-library' && `${photospheres.length} photosphère(s)`}
                         </div>
@@ -172,7 +172,7 @@ export default function AdminPage() {
 
             {/* Tab Navigation */}
             <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
                     <nav className="flex space-x-8" aria-label="Tabs">
                         {tabs.map((tab) => (
                             <button
@@ -195,10 +195,10 @@ export default function AdminPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Photosphere Upload Tab */}
                 {activeTab === 'photosphere-upload' && (
-                    <div className="max-w-6xl">
+                    <div className="max-w-7xl m-auto">
                         <div className="mb-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Télécharger des Photosphères</h2>
                             <p className="text-gray-600">Téléchargez et traitez vos photosphères par lot.</p>
@@ -209,16 +209,16 @@ export default function AdminPage() {
 
                 {/* Photosphere Library Tab */}
                 {activeTab === 'photosphere-library' && (
-                    <div>
+                    <div className="max-w-7xl m-auto">
                         <div className="mb-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Bibliothèque de Photosphères</h2>
                             <p className="text-gray-600">Gérez vos photosphères existantes et prévisualisez-les.</p>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-1 space-y-6">
                                 <PhotosphereStats photospheres={photospheres} loading={loading} />
-                                <PhotosphereList 
+                                <PhotosphereList
                                     photospheres={photospheres}
                                     selectedPhotosphere={selectedPhotosphere}
                                     onSelectPhotosphere={setSelectedPhotosphere}
@@ -236,27 +236,28 @@ export default function AdminPage() {
 
                 {/* Maps Tab */}
                 {activeTab === 'maps' && (
-                    <div>
-                        <div className="mb-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Gestion des Cartes</h2>
-                            <p className="text-gray-600">Créez et modifiez les cartes du jeu.</p>
-                        </div>
-
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="flex h-[calc(100vh-200px)]">
-                                <div className="w-80 p-6 border-r border-gray-200 bg-gray-50 overflow-auto">
+                    <div className="mx-40">
+                        <div className="bg-white shadow-sm border-t border-gray-200 overflow-hidden">
+                            <div className="flex">
+                                <div className="p-6 border-r border-gray-200 bg-gray-50 overflow-auto">
                                     <AdminMapError />
-                                    <div className="space-y-4">
-                                        <AdminLocaleSelector />
-                                        <AdminExpansionSelector />
-                                        <AdminMapTypeSelector />
-                                        <MapList />
-                                        <MapForm />
+                                    <div className="flex gap-10">
+                                        <div className="w-[300px] flex flex-col gap-4">
+                                            <AdminLocaleSelector />
+                                            <AdminExpansionSelector />
+                                            <AdminMapTypeSelector />
+                                        </div>
+                                        <div className="w-[500px] flex flex-col gap-4 max-h-[1000px] overflow-auto">
+                                            <MapList />
+                                        </div>
+                                        <div className="w-[500px] flex flex-col gap-4 max-h-[1000px] overflow-auto">
+                                            <MapForm />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 flex flex-col">
-                                    <div className="p-4 border-b border-gray-200 bg-white">
+                                <div className="flex-1 flex flex-col items-center">
+                                    <div className="w-full p-4 border-b border-gray-200 bg-white">
                                         <MapSettings
                                             showPolygonsEditor={showPolygonsEditor}
                                             setShowPolygonsEditor={setShowPolygonsEditor}
@@ -264,7 +265,7 @@ export default function AdminPage() {
                                             setDragMode={setDragMode}
                                         />
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 w-full flex items-center justify-center">
                                         <MapEor
                                             showPolygonsEditor={showPolygonsEditor}
                                             dragMode={dragMode}

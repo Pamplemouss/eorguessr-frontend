@@ -28,7 +28,7 @@ const MapForm = () => {
                 </h3>
             </div>
             
-            <div className="space-y-6 max-h-96 overflow-y-auto">
+            <div className="space-y-6">
                 <MapFormCategory title="Chemin de l'image">
                     <MapFormImagePath />
                 </MapFormCategory>
