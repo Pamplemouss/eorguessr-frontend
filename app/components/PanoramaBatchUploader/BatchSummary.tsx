@@ -9,7 +9,8 @@ import {
 	FaImage,
 	FaMapMarkerAlt,
 	FaCloud,
-	FaClock
+	FaClock,
+	FaExclamationTriangle
 } from 'react-icons/fa';
 import { PanoramaFile, BatchUploadSummary, QUALITY_CONFIGS } from '@/lib/types/PanoramaBatch';
 import { formatFileSize } from '@/lib/utils/panoramaUtils';
@@ -17,9 +18,10 @@ import { formatFileSize } from '@/lib/utils/panoramaUtils';
 interface BatchSummaryProps {
 	panoramaFiles: PanoramaFile[];
 	batchSummary: BatchUploadSummary;
+	onRetryMapValidation?: (fileId: string) => void;
 }
 
-const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary }) => {
+const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary, onRetryMapValidation }) => {
 	return (
 		<div className="space-y-6">
 			{/* Overview Cards */}
@@ -76,6 +78,38 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 					</div>
 				</div>
 			</div>
+
+			{/* Excluded Files Warning */}
+			{panoramaFiles.some(pf => pf.metadata && pf.mapValidation && !pf.mapValidation.isValid) && (
+				<div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+					<h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center gap-2">
+						<FaExclamationTriangle />
+						Fichiers exclus de l'upload
+					</h3>
+					<p className="text-red-700 text-sm mb-4">
+						Les fichiers suivants ne seront pas uploadés en raison d'erreurs de validation de carte :
+					</p>
+					<div className="space-y-2">
+						{panoramaFiles
+							.filter(pf => pf.metadata && pf.mapValidation && !pf.mapValidation.isValid)
+							.map((pf) => (
+								<div key={pf.id} className="flex items-center justify-between bg-white rounded p-3 border border-red-300">
+									<div>
+										<span className="font-medium text-red-800">{pf.file.name}</span>
+										<div className="text-xs text-red-600 mt-1">{pf.mapValidation?.error}</div>
+									</div>
+									<button
+										onClick={() => onRetryMapValidation?.(pf.id)}
+										className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded transition-colors"
+									>
+										Réessayer
+									</button>
+								</div>
+							))
+						}
+					</div>
+				</div>
+			)}
 
 			{/* File Details */}
 			<div className="bg-white rounded-lg shadow-md p-6">
@@ -157,26 +191,28 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 											<div className="flex items-center gap-2">
 												<FaMapMarkerAlt className="text-green-500" />
 												<span className="font-medium">X:</span>
-												<span className="text-gray-700">{panoramaFile.metadata.x.toFixed(2)}</span>
+												<span className="text-gray-700">{panoramaFile.metadata.coord.x.toFixed(2)}</span>
 											</div>
 											<div className="flex items-center gap-2">
 												<FaMapMarkerAlt className="text-green-500" />
 												<span className="font-medium">Y:</span>
-												<span className="text-gray-700">{panoramaFile.metadata.y.toFixed(2)}</span>
+												<span className="text-gray-700">{panoramaFile.metadata.coord.y.toFixed(2)}</span>
 											</div>
 											<div className="flex items-center gap-2">
 												<FaMapMarkerAlt className="text-green-500" />
 												<span className="font-medium">Z:</span>
-												<span className="text-gray-700">{panoramaFile.metadata.z.toFixed(2)}</span>
+												<span className="text-gray-700">{panoramaFile.metadata.coord.z.toFixed(2)}</span>
 											</div>
 											<div className="flex items-center gap-2">
 												<FaClock className="text-amber-500" />
 												<span className="font-medium">Temps:</span>
-												<span className="text-gray-700">{panoramaFile.metadata.time.toString().padStart(4, '0')}</span>
+												<span className="text-gray-700">{panoramaFile.metadata.time}</span>
 											</div>
 										</div>
 									</div>
 								)}
+
+
 								
 								{!panoramaFile.metadata && (
 									<div>
@@ -193,47 +229,49 @@ const BatchSummary: React.FC<BatchSummaryProps> = ({ panoramaFiles, batchSummary
 									</div>
 								)}
 
-								{/* Quality Versions */}
-								<div>
-									<label className="text-sm font-semibold text-gray-600 mb-2 block">
-										Versions de qualité
-									</label>
-									<div className="space-y-2">
-										{QUALITY_CONFIGS.map((config) => {
-											const hasQuality = panoramaFile.qualities[config.name];
-											const isGenerating = panoramaFile.uploadStatus === 'generating';
-											return (
-												<div
-													key={config.name}
-													className="flex items-center justify-between text-sm"
-												>
-													<span className={`
-                            ${hasQuality ? 'text-gray-700' : 'text-gray-400'}
-                          `}>
-														{config.name === 'original' ? 'Original' :
-															config.name === 'panorama_thumbnail' ? 'Miniature Panorama' :
-															config.name === 'light' ? 'Léger' :
-																config.name === 'medium' ? 'Moyen' : 'Lourd'}
-													</span>
-													<div className="flex items-center gap-2">
-														{config.maxWidth && (
-															<span className="text-gray-500 text-xs">
-																{config.maxWidth}px
-															</span>
-														)}
-														{hasQuality ? (
-															<FaCheck className="text-green-500" />
-														) : isGenerating ? (
-															<div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-														) : (
-															<div className="w-4 h-4 rounded-full bg-gray-200" />
-														)}
+								{/* Quality Versions - Only show if map validation passed or no metadata */}
+								{(!panoramaFile.metadata || (panoramaFile.mapValidation?.isValid && !panoramaFile.mapValidation.isValidating)) && (
+									<div>
+										<label className="text-sm font-semibold text-gray-600 mb-2 block">
+											Versions de qualité
+										</label>
+										<div className="space-y-2">
+											{QUALITY_CONFIGS.map((config) => {
+												const hasQuality = panoramaFile.qualities[config.name];
+												const isGenerating = panoramaFile.uploadStatus === 'generating';
+												return (
+													<div
+														key={config.name}
+														className="flex items-center justify-between text-sm"
+													>
+														<span className={`
+	                            ${hasQuality ? 'text-gray-700' : 'text-gray-400'}
+	                          `}>
+															{config.name === 'original' ? 'Original' :
+																config.name === 'panorama_thumbnail' ? 'Miniature Panorama' :
+																config.name === 'light' ? 'Léger' :
+																	config.name === 'medium' ? 'Moyen' : 'Lourd'}
+														</span>
+														<div className="flex items-center gap-2">
+															{config.maxWidth && (
+																<span className="text-gray-500 text-xs">
+																	{config.maxWidth}px
+																</span>
+															)}
+															{hasQuality ? (
+																<FaCheck className="text-green-500" />
+															) : isGenerating ? (
+																<div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+															) : (
+																<div className="w-4 h-4 rounded-full bg-gray-200" />
+															)}
+														</div>
 													</div>
-												</div>
-											);
-										})}
+												);
+											})}
+										</div>
 									</div>
-								</div>
+								)}
 							</div>
 						</div>
 					))}

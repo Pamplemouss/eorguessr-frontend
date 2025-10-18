@@ -4,10 +4,12 @@ import { FaInfoCircle, FaMapMarkerAlt, FaCloud, FaClock, FaCalendarAlt } from 'r
 interface Metadata {
     map: string;
     weather: string;
-    x: number;
-    y: number;
-    z: number;
-    time: number;
+    coord: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    time: string;
     uploadedAt?: string;
 }
 
@@ -34,7 +36,7 @@ const MetadataDisplay: React.FC<MetadataDisplayProps> = ({ metadata }) => {
                     <div className="flex items-center gap-2 text-sm">
                         <FaMapMarkerAlt className="text-green-500" />
                         <span className="font-medium text-blue-700">X:</span>
-                        <span className="text-blue-900">{metadata.x.toFixed(2)}</span>
+                        <span className="text-blue-900">{metadata.coord.x.toFixed(2)}</span>
                     </div>
                 </div>
                 <div>
@@ -48,21 +50,21 @@ const MetadataDisplay: React.FC<MetadataDisplayProps> = ({ metadata }) => {
                     <div className="flex items-center gap-2 text-sm">
                         <FaMapMarkerAlt className="text-green-500" />
                         <span className="font-medium text-blue-700">Y:</span>
-                        <span className="text-blue-900">{metadata.y.toFixed(2)}</span>
+                        <span className="text-blue-900">{metadata.coord.y.toFixed(2)}</span>
                     </div>
                 </div>
                 <div>
                     <div className="flex items-center gap-2 text-sm">
                         <FaClock className="text-amber-500" />
                         <span className="font-medium text-blue-700">Temps:</span>
-                        <span className="text-blue-900">{metadata.time.toString().padStart(4, '0')}</span>
+                        <span className="text-blue-900">{metadata.time}</span>
                     </div>
                 </div>
                 <div>
                     <div className="flex items-center gap-2 text-sm">
                         <FaMapMarkerAlt className="text-green-500" />
                         <span className="font-medium text-blue-700">Z:</span>
-                        <span className="text-blue-900">{metadata.z.toFixed(2)}</span>
+                        <span className="text-blue-900">{metadata.coord.z.toFixed(2)}</span>
                     </div>
                 </div>
                 {metadata.uploadedAt && (

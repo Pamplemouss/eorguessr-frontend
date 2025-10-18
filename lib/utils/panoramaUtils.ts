@@ -176,10 +176,12 @@ export const generatePanoramaId = (): string => {
 export interface PanoramaMetadata {
 	map: string;
 	weather: string;
-	x: number;
-	y: number;
-	z: number;
-	time: number;
+	coord: {
+		x: number;
+		y: number;
+		z: number;
+	};
+	time: string;
 	uploadedAt?: string; // Optional since it's added during upload, not parsing
 }
 
@@ -230,10 +232,12 @@ export const parseFilenameMetadata = (filename: string): PanoramaMetadata | null
 		return {
 			map: map.trim(),
 			weather: weather.trim(),
-			x,
-			y,
-			z,
-			time
+			coord: {
+				x,
+				y,
+				z
+			},
+			time: time.toString().padStart(4, '0') // Convert to string and pad with zeros
 		};
 		
 	} catch (error) {

@@ -26,6 +26,8 @@ interface UsePanoramaUploaderReturn {
 	removeFile: (fileId: string) => void;
 	selectThumbnail: (fileId: string, thumbnailIndex: number) => void;
 	generateQualities: (fileId: string) => Promise<void>;
+	retryMapValidation: (fileId: string) => Promise<void>;
+	retryDuplicateCheck: (fileId: string) => Promise<void>;
 	uploadBatch: () => Promise<void>;
 	reset: () => void;
 }
@@ -35,6 +37,161 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 	const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
+
+	// Check for duplicate photosphere
+	const checkDuplicate = useCallback(async (fileId: string, metadata: any, mapId: string) => {
+		try {
+			console.log('Starting duplicate check for file:', fileId, {
+				coord: metadata.coord,
+				weather: metadata.weather,
+				time: metadata.time,
+				mapId: mapId
+			});
+
+			const response = await fetch('/api/photospheres/check-duplicate', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					coord: metadata.coord,
+					weather: metadata.weather,
+					time: metadata.time,
+					mapId: mapId
+				})
+			});
+
+			const result = await response.json();
+			console.log('Duplicate check result:', result);
+
+			setPanoramaFiles(prev => prev.map(pf =>
+				pf.id === fileId
+					? {
+						...pf,
+						duplicateCheck: {
+							isChecking: false,
+							isDuplicate: result.isDuplicate,
+							existingPhotosphere: result.existingPhotosphere,
+							message: result.message
+						}
+					}
+					: pf
+			));
+
+			// If duplicate found, set the file status to error
+			if (result.isDuplicate) {
+				setPanoramaFiles(prev => prev.map(pf =>
+					pf.id === fileId
+						? {
+							...pf,
+							uploadStatus: 'error',
+							error: `Doublon détecté: ${result.message}`,
+							qualities: {} // Clear any existing qualities
+						}
+						: pf
+				));
+			}
+		} catch (error) {
+			console.error(`Duplicate check failed for file ${fileId}:`, error);
+			setPanoramaFiles(prev => prev.map(pf =>
+				pf.id === fileId
+					? {
+						...pf,
+						duplicateCheck: {
+							isChecking: false,
+							isDuplicate: false,
+							message: 'Erreur lors de la vérification des doublons'
+						},
+						uploadStatus: 'error',
+						error: 'Erreur lors de la vérification des doublons'
+					}
+					: pf
+			));
+		}
+	}, []);
+
+	// Validate map for a specific panorama file
+	const validateMap = useCallback(async (fileId: string, mapName: string) => {
+		try {
+			const response = await fetch('/api/maps/validate', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ mapName })
+			});
+
+			const result = await response.json();
+
+			setPanoramaFiles(prev => prev.map(pf =>
+				pf.id === fileId
+					? {
+						...pf,
+						mapValidation: {
+							isValidating: false,
+							isValid: result.isValid,
+							mapId: result.mapId,
+							error: result.error
+						}
+					}
+					: pf
+			));
+
+			// If map validation failed, set the file status to error and prevent quality generation
+			if (!result.isValid) {
+				setPanoramaFiles(prev => prev.map(pf =>
+					pf.id === fileId
+						? {
+							...pf,
+							uploadStatus: 'error',
+							error: `Map validation failed: ${result.error}`,
+							qualities: {} // Clear any existing qualities
+						}
+						: pf
+				));
+			} else {
+				// Map validation successful, now check for duplicates
+				// We need to get the current metadata and trigger duplicate check
+				setPanoramaFiles(prev => {
+					const panoramaFile = prev.find(pf => pf.id === fileId);
+					if (panoramaFile?.metadata && result.mapId) {
+						// Initialize duplicate check state
+						const updatedFiles = prev.map(pf =>
+							pf.id === fileId
+								? { 
+									...pf, 
+									duplicateCheck: { 
+										isChecking: true, 
+										isDuplicate: false 
+									} 
+								}
+								: pf
+						);
+
+						// Trigger duplicate check asynchronously
+						setTimeout(() => {
+							checkDuplicate(fileId, panoramaFile.metadata!, result.mapId);
+						}, 0);
+						
+						return updatedFiles;
+					}
+					return prev;
+				});
+			}
+		} catch (error) {
+			console.error(`Map validation failed for file ${fileId}:`, error);
+			setPanoramaFiles(prev => prev.map(pf =>
+				pf.id === fileId
+					? {
+						...pf,
+						mapValidation: {
+							isValidating: false,
+							isValid: false,
+							error: 'Network error during map validation'
+						},
+						uploadStatus: 'error',
+						error: 'Map validation failed due to network error'
+					}
+					: pf
+			));
+		}
+	}, [panoramaFiles, checkDuplicate]);
 
 	// Add new files to the batch
 	const addFiles = useCallback(async (files: File[]) => {
@@ -62,11 +219,30 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 		// Add files immediately so user sees them
 		setPanoramaFiles(prev => [...prev, ...newPanoramaFiles]);
 
-		// Generate thumbnails for each file
+		// Generate thumbnails and validate maps for each file
 		for (let i = 0; i < newPanoramaFiles.length; i++) {
 			const panoramaFile = newPanoramaFiles[i];
 
+			// Start both thumbnail generation and map validation in parallel
 			try {
+				// Initialize map validation state if metadata exists
+				if (panoramaFile.metadata) {
+					setPanoramaFiles(prev => prev.map(pf =>
+						pf.id === panoramaFile.id
+							? { 
+								...pf, 
+								mapValidation: { 
+									isValidating: true, 
+									isValid: false 
+								} 
+							}
+							: pf
+					));
+
+					// Validate map in parallel
+					validateMap(panoramaFile.id, panoramaFile.metadata.map);
+				}
+
 				const thumbnails = await generateThumbnailsFromPanorama(panoramaFile.file);
 
 				setPanoramaFiles(prev => prev.map(pf =>
@@ -250,6 +426,81 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 						? { ...up, status: 'error', progress: 0 }
 						: up
 				));
+				// If any upload fails, throw to stop the entire file upload
+				throw error;
+			}
+		}
+
+		// After all files are successfully uploaded to S3, create MongoDB entry
+		if (panoramaFile.metadata && panoramaFile.mapValidation?.isValid && panoramaFile.mapValidation.mapId) {
+			try {
+				// Add MongoDB progress entry
+				setUploadProgress(prev => [...prev, {
+					fileId: panoramaFile.id,
+					fileName: panoramaFile.file.name,
+					type: 'mongodb',
+					status: 'uploading',
+					progress: 0
+				}]);
+
+				// Add a small delay so users can see the MongoDB step
+				await new Promise(resolve => setTimeout(resolve, 1500));
+
+				const createRes = await fetch('/api/photospheres/create-direct', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						id: panoramaFile.id,
+						coord: panoramaFile.metadata.coord,
+						weather: panoramaFile.metadata.weather,
+						time: panoramaFile.metadata.time,
+						mapId: panoramaFile.mapValidation.mapId
+					})
+				});
+
+				if (!createRes.ok) {
+					const errorData = await createRes.json();
+					throw new Error(`Failed to create MongoDB entry: ${errorData.error}`);
+				}
+
+				// Mark MongoDB creation as completed
+				setUploadProgress(prev => prev.map(up =>
+					up.fileId === panoramaFile.id && up.type === 'mongodb'
+						? { ...up, status: 'completed', progress: 100 }
+						: up
+				));
+
+				console.log(`Successfully created MongoDB entry for photosphere ${panoramaFile.id}`);
+			} catch (error) {
+				console.error(`MongoDB creation failed for ${panoramaFile.id}:`, error);
+				
+				// Clean up S3 files since MongoDB creation failed
+				try {
+					console.log(`Cleaning up S3 files for failed photosphere ${panoramaFile.id}`);
+					const cleanupRes = await fetch('/api/photospheres/cleanup', {
+						method: 'DELETE',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ photosphereId: panoramaFile.id })
+					});
+
+					if (cleanupRes.ok) {
+						console.log(`Successfully cleaned up S3 files for ${panoramaFile.id}`);
+					} else {
+						console.warn(`Failed to cleanup S3 files for ${panoramaFile.id}`);
+					}
+				} catch (cleanupError) {
+					console.error(`Error during S3 cleanup for ${panoramaFile.id}:`, cleanupError);
+				}
+
+				// Update existing MongoDB progress entry to error state
+				setUploadProgress(prev => prev.map(up =>
+					up.fileId === panoramaFile.id && up.type === 'mongodb'
+						? { ...up, status: 'error', progress: 0 }
+						: up
+				));
+
+				// Throw to stop processing this file
+				throw new Error(`MongoDB creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
 		}
 	}, []);
@@ -258,11 +509,38 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 	const uploadBatch = useCallback(async () => {
 		setIsUploading(true);
 
-		const readyFiles = panoramaFiles.filter(pf =>
-			pf.uploadStatus === 'ready' &&
-			pf.thumbnails.length > 0 &&
-			Object.keys(pf.qualities).length > 0
-		);
+		const readyFiles = panoramaFiles.filter(pf => {
+			// Basic readiness checks
+			if (pf.uploadStatus !== 'ready' || pf.thumbnails.length === 0 || Object.keys(pf.qualities).length === 0) {
+				return false;
+			}
+
+			// If file has metadata, ensure map validation and duplicate check passed
+			if (pf.metadata && pf.mapValidation) {
+				// Map validation must pass
+				if (!pf.mapValidation.isValid || pf.mapValidation.isValidating) {
+					return false;
+				}
+
+				// If duplicate check was performed, it must pass (no duplicates found)
+				if (pf.duplicateCheck) {
+					if (pf.duplicateCheck.isChecking) {
+						return false; // Still checking
+					}
+					if (pf.duplicateCheck.isDuplicate) {
+						return false; // Duplicate found
+					}
+				} else {
+					// No duplicate check performed yet - not ready
+					return false;
+				}
+
+				return true;
+			}
+
+			// Files without metadata are ready (though they won't create MongoDB entries)
+			return true;
+		});
 
 		// Mark files as uploading
 		setPanoramaFiles(prev => prev.map(pf =>
@@ -273,18 +551,75 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 
 		// Upload files one by one (could be parallelized for better performance)
 		for (const panoramaFile of readyFiles) {
-			await uploadSingleFile(panoramaFile);
+			try {
+				await uploadSingleFile(panoramaFile);
 
-			// Mark as completed
-			setPanoramaFiles(prev => prev.map(pf =>
-				pf.id === panoramaFile.id
-					? { ...pf, uploadStatus: 'completed' }
-					: pf
-			));
+				// Mark as completed
+				setPanoramaFiles(prev => prev.map(pf =>
+					pf.id === panoramaFile.id
+						? { ...pf, uploadStatus: 'completed' }
+						: pf
+				));
+			} catch (error) {
+				console.error(`Upload failed for file ${panoramaFile.file.name}:`, error);
+				
+				// Mark this file as failed but continue with others
+				setPanoramaFiles(prev => prev.map(pf =>
+					pf.id === panoramaFile.id
+						? { 
+							...pf, 
+							uploadStatus: 'error', 
+							error: error instanceof Error ? error.message : 'Upload failed'
+						}
+						: pf
+				));
+			}
 		}
 
 		setIsUploading(false);
 	}, [panoramaFiles, uploadSingleFile]);
+
+	// Retry map validation for a specific file
+	const retryMapValidation = useCallback(async (fileId: string) => {
+		const panoramaFile = panoramaFiles.find(pf => pf.id === fileId);
+		if (!panoramaFile?.metadata) return;
+
+		// Reset validation state and file error
+		setPanoramaFiles(prev => prev.map(pf =>
+			pf.id === fileId
+				? {
+					...pf,
+					mapValidation: { isValidating: true, isValid: false },
+					duplicateCheck: undefined, // Clear previous duplicate check
+					uploadStatus: 'ready', // Reset from error state
+					error: undefined,
+					qualities: {} // Clear qualities so they can be regenerated if validation passes
+				}
+				: pf
+		));
+
+		await validateMap(fileId, panoramaFile.metadata.map);
+	}, [panoramaFiles, validateMap]);
+
+	// Retry duplicate check for a specific file
+	const retryDuplicateCheck = useCallback(async (fileId: string) => {
+		const panoramaFile = panoramaFiles.find(pf => pf.id === fileId);
+		if (!panoramaFile?.metadata || !panoramaFile.mapValidation?.mapId) return;
+
+		// Reset duplicate check state
+		setPanoramaFiles(prev => prev.map(pf =>
+			pf.id === fileId
+				? {
+					...pf,
+					duplicateCheck: { isChecking: true, isDuplicate: false },
+					uploadStatus: 'ready', // Reset from error state
+					error: undefined
+				}
+				: pf
+		));
+
+		await checkDuplicate(fileId, panoramaFile.metadata, panoramaFile.mapValidation.mapId);
+	}, [panoramaFiles, checkDuplicate]);
 
 	// Reset the entire state
 	const reset = useCallback(() => {
@@ -312,7 +647,35 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 			const expectedQualities = QUALITY_CONFIGS.length;
 			const actualQualities = Object.keys(pf.qualities).length;
 			
-			return actualQualities === expectedQualities;
+			if (actualQualities !== expectedQualities) {
+				return false;
+			}
+
+			// Check if map validation and duplicate check passed (if metadata exists)
+			if (pf.metadata && pf.mapValidation) {
+				// Map validation must pass
+				if (!pf.mapValidation.isValid || pf.mapValidation.isValidating) {
+					return false;
+				}
+
+				// Duplicate check must also pass (no duplicates found)
+				if (pf.duplicateCheck) {
+					if (pf.duplicateCheck.isChecking) {
+						return false; // Still checking
+					}
+					if (pf.duplicateCheck.isDuplicate) {
+						return false; // Duplicate found
+					}
+				} else {
+					// No duplicate check performed yet - not ready
+					return false;
+				}
+
+				return true;
+			}
+
+			// If no metadata, file is ready
+			return true;
 		}).length
 	};
 
@@ -326,6 +689,8 @@ export const usePanoramaUploader = (): UsePanoramaUploaderReturn => {
 		removeFile,
 		selectThumbnail,
 		generateQualities,
+		retryMapValidation,
+		retryDuplicateCheck,
 		uploadBatch,
 		reset
 	};

@@ -16,6 +16,28 @@ export interface PanoramaFile {
   uploadStatus: 'pending' | 'generating' | 'ready' | 'uploading' | 'completed' | 'error';
   uploadProgress?: number;
   error?: string;
+  mapValidation?: {
+    isValidating: boolean;
+    isValid: boolean;
+    mapId?: string;
+    error?: string;
+  };
+  duplicateCheck?: {
+    isChecking: boolean;
+    isDuplicate: boolean;
+    existingPhotosphere?: {
+      id: string;
+      coord: {
+        x: number;
+        y: number;
+        z: number;
+      };
+      weather: string;
+      time: string;
+      uploadedAt: Date;
+    };
+    message?: string;
+  };
 }
 
 export interface QualityConfig {
@@ -28,7 +50,7 @@ export interface QualityConfig {
 export interface UploadProgress {
   fileId: string;
   fileName: string;
-  type: 'thumbnail' | 'panorama_thumbnail' | 'light' | 'medium' | 'heavy' | 'original' | 'metadata';
+  type: 'thumbnail' | 'panorama_thumbnail' | 'light' | 'medium' | 'heavy' | 'original' | 'metadata' | 'mongodb';
   status: 'pending' | 'uploading' | 'completed' | 'error';
   progress: number;
 }

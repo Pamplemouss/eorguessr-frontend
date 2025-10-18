@@ -10,7 +10,9 @@ import {
 	FaExclamationTriangle,
 	FaTimes,
 	FaEye,
-	FaUpload
+	FaUpload,
+	FaTrash,
+	FaDatabase
 } from 'react-icons/fa';
 import { usePanoramaUploader } from '@/app/hooks/usePanoramaUploader';
 import ThumbnailSelector from '@/app/components/PanoramaBatchUploader/ThumbnailSelector';
@@ -36,22 +38,39 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 		removeFile,
 		selectThumbnail,
 		generateQualities,
+		retryMapValidation,
 		uploadBatch,
 		reset
 	} = usePanoramaUploader();
 
 	const [currentStep, setCurrentStep] = useState<Step>('selection');
 
-	// Auto-generate qualities when entering summary step
+	// Auto-generate qualities when entering summary step (only for files with valid maps)
 	useEffect(() => {
 		if (currentStep === 'summary') {
 			panoramaFiles.forEach(pf => {
-				if (Object.keys(pf.qualities).length === 0 && pf.uploadStatus === 'ready') {
+				// Only generate qualities if:
+				// 1. No qualities exist yet
+				// 2. File is ready
+				// 3. Either no metadata OR map validation passed
+				const shouldGenerateQualities = Object.keys(pf.qualities).length === 0 && 
+					pf.uploadStatus === 'ready' &&
+					(!pf.metadata || (pf.mapValidation?.isValid && !pf.mapValidation.isValidating));
+
+				if (shouldGenerateQualities) {
 					generateQualities(pf.id);
 				}
 			});
 		}
 	}, [currentStep, panoramaFiles, generateQualities]);
+
+	// Call onComplete when reaching completed step
+	useEffect(() => {
+		if (currentStep === 'completed' && onComplete) {
+			const uploadedFiles = panoramaFiles.map(pf => pf.id);
+			onComplete(uploadedFiles);
+		}
+	}, [currentStep, onComplete, panoramaFiles]);
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop: async (acceptedFiles) => {
@@ -64,12 +83,19 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 		multiple: true
 	});
 
-	// Check if all files are ready for upload (including qualities)
+	// Check if all files are ready for upload (including map validation)
 	const allFilesReady = panoramaFiles.length > 0 &&
-		panoramaFiles.every(pf =>
-			pf.uploadStatus === 'ready' &&
-			pf.thumbnails.length > 0
-		);
+		panoramaFiles.every(pf => {
+			const basicReady = pf.uploadStatus === 'ready' && pf.thumbnails.length > 0;
+			
+			// If file has metadata, map validation must also pass
+			if (pf.metadata && pf.mapValidation) {
+				return basicReady && pf.mapValidation.isValid && !pf.mapValidation.isValidating;
+			}
+			
+			// Files without metadata are ready if basic conditions are met
+			return basicReady;
+		});
 
 	// Check if all qualities are generated for upload step
 	const allQualitiesReady = panoramaFiles.length > 0 &&
@@ -86,10 +112,6 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 			setCurrentStep('uploading');
 			uploadBatch().then(() => {
 				setCurrentStep('completed');
-				if (onComplete) {
-					const uploadedFiles = panoramaFiles.map(pf => pf.id);
-					onComplete(uploadedFiles);
-				}
 			});
 		}
 	};
@@ -99,13 +121,15 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 		setCurrentStep('selection');
 	};
 
+
+
 	const getStepTitle = () => {
 		switch (currentStep) {
 			case 'selection': return 'Sélection des fichiers';
 			case 'thumbnails': return 'Sélection des miniatures';
 			case 'summary': return 'Résumé du lot';
-			case 'uploading': return 'Upload en cours';
-			case 'completed': return 'Upload terminé';
+			case 'uploading': return 'Upload et sauvegarde en cours';
+			case 'completed': return 'Processus terminé';
 			default: return '';
 		}
 	};
@@ -136,10 +160,10 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 						className="bg-blue-500 h-2 rounded-full transition-all duration-300"
 						style={{
 							width: `${currentStep === 'selection' ? 0 :
-								currentStep === 'thumbnails' ? 25 :
-									currentStep === 'summary' ? 50 :
-										currentStep === 'uploading' ? 75 :
-											100
+								currentStep === 'thumbnails' ? 20 :
+									currentStep === 'summary' ? 40 :
+										currentStep === 'uploading' ? 80 :
+												100
 								}%`
 						}}
 					/>
@@ -198,8 +222,8 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 				<div className="space-y-6">
 					{panoramaFiles.map((panoramaFile) => (
 						<div key={panoramaFile.id} className="bg-white rounded-lg shadow-md p-6">
-							<div className="flex items-center justify-between mb-4">
-								<div>
+							<div className="flex items-start justify-between mb-4">
+								<div className="flex-1 mr-4">
 									<h3 className="text-lg font-semibold text-gray-800">
 										{panoramaFile.file.name}
 									</h3>
@@ -208,7 +232,7 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 									</p>
 								</div>
 
-								<div className="flex items-center gap-2">
+								<div className="flex items-center gap-3 flex-shrink-0">
 									{panoramaFile.uploadStatus === 'generating' && (
 										<div className="flex items-center gap-2 text-blue-600">
 											<FaSpinner className="animate-spin" />
@@ -217,9 +241,24 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 									)}
 
 									{panoramaFile.uploadStatus === 'ready' && (
-										<div className="flex items-center gap-2 text-green-600">
-											<FaCheckCircle />
-											<span className="text-sm">Prêt</span>
+										<div className="flex items-center gap-2">
+											{/* Show different status based on map validation */}
+											{panoramaFile.metadata && panoramaFile.mapValidation?.isValidating ? (
+												<>
+													<FaSpinner className="animate-spin text-blue-600" />
+													<span className="text-sm text-blue-600">Validation carte...</span>
+												</>
+											) : panoramaFile.metadata && panoramaFile.mapValidation?.isValid === false ? (
+												<>
+													<FaExclamationTriangle className="text-red-600" />
+													<span className="text-sm text-red-600">Carte invalide</span>
+												</>
+											) : (
+												<>
+													<FaCheckCircle className="text-green-600" />
+													<span className="text-sm text-green-600">Prêt</span>
+												</>
+											)}
 										</div>
 									)}
 
@@ -231,10 +270,20 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 									)}
 
 									<button
-										onClick={() => removeFile(panoramaFile.id)}
-										className="text-red-500 hover:text-red-700 p-1"
+										onClick={() => {
+											const fileName = panoramaFile.file.name.length > 30 
+												? panoramaFile.file.name.substring(0, 30) + '...'
+												: panoramaFile.file.name;
+											if (confirm(`Êtes-vous sûr de vouloir supprimer "${fileName}" du lot d'upload ?`)) {
+												removeFile(panoramaFile.id);
+											}
+										}}
+										className="group flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-lg transition-all duration-200 hover:shadow-sm hover:scale-105 active:scale-95"
+										title="Supprimer ce fichier du lot d'upload"
 									>
-										<FaTimes />
+										<FaTrash className="text-xs group-hover:scale-110 transition-transform duration-200" />
+										<span className="hidden sm:inline">Supprimer</span>
+										<span className="inline sm:hidden">✕</span>
 									</button>
 								</div>
 							</div>
@@ -249,9 +298,20 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 
 							{panoramaFile.uploadStatus === 'error' && (
 								<div className="bg-red-50 border border-red-200 rounded p-4">
-									<p className="text-red-700">
-										{panoramaFile.error || 'Une erreur est survenue lors du traitement de ce fichier.'}
-									</p>
+									<div className="flex items-center justify-between">
+										<p className="text-red-700 flex-1">
+											{panoramaFile.error || 'Une erreur est survenue lors du traitement de ce fichier.'}
+										</p>
+										{/* Show retry button if it's a map validation error */}
+										{panoramaFile.metadata && panoramaFile.mapValidation && !panoramaFile.mapValidation.isValid && (
+											<button
+												onClick={() => retryMapValidation(panoramaFile.id)}
+												className="ml-3 text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded transition-colors"
+											>
+												Réessayer
+											</button>
+										)}
+									</div>
 								</div>
 							)}
 						</div>
@@ -289,6 +349,7 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 					<BatchSummary
 						panoramaFiles={panoramaFiles}
 						batchSummary={batchSummary}
+						onRetryMapValidation={retryMapValidation}
 					/>
 
 					<div className="flex justify-between items-center bg-white rounded-lg shadow-md p-4 mt-6">
@@ -334,26 +395,28 @@ const PanoramaBatchUploader: React.FC<PanoramaBatchUploaderProps> = ({ onComplet
 				</div>
 			)}
 
-			{/* Step 5: Completed */}
+
+
+			{/* Step 6: Final Completed */}
 			{currentStep === 'completed' && (
 				<div className="bg-white rounded-lg shadow-md p-8 text-center">
-					<div className="text-6xl text-green-500 mb-6">
-						<FaCheckCircle className="mx-auto" />
+					<div className="text-4xl text-blue-500 mb-4">
+						🚀
 					</div>
 
-					<h2 className="text-2xl font-bold text-gray-800 mb-4">
-						Upload terminé avec succès !
+					<h2 className="text-xl font-bold text-gray-800 mb-4">
+						Processus terminé !
 					</h2>
 
 					<p className="text-gray-600 mb-6">
-						{panoramaFiles.length} panorama(s) ont été uploadés avec leurs miniatures et variantes de qualité.
+						Vous pouvez maintenant uploader d'autres photosphères ou retourner à l'administration.
 					</p>
 
 					<button
 						onClick={handleReset}
 						className="px-6 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 hover:shadow-lg transition-all duration-200"
 					>
-						Uploader d'autres panoramas
+						Uploader d'autres photosphères
 					</button>
 				</div>
 			)}

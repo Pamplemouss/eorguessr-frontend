@@ -8,7 +8,8 @@ import {
   FaFile,
   FaImage,
   FaUpload,
-  FaFileCode
+  FaFileCode,
+  FaDatabase
 } from 'react-icons/fa';
 import { PanoramaFile, UploadProgress as UploadProgressType } from '@/lib/types/PanoramaBatch';
 import { formatFileSize } from '@/lib/utils/panoramaUtils';
@@ -59,6 +60,8 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ panoramaFiles, uploadPr
         return <FaImage className="text-purple-500" />;
       case 'metadata':
         return <FaFileCode className="text-orange-500" />;
+      case 'mongodb':
+        return <FaDatabase className="text-green-600" />;
       default:
         return <FaUpload className="text-blue-500" />;
     }
@@ -73,6 +76,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ panoramaFiles, uploadPr
       case 'heavy': return 'Qualité lourde';
       case 'original': return 'Original';
       case 'metadata': return 'Métadonnées';
+      case 'mongodb': return 'Base de données';
       default: return type;
     }
   };
@@ -143,9 +147,15 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ panoramaFiles, uploadPr
               {/* Individual Upload Progress */}
               {fileUploads.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Détails de l'upload :</h4>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Étapes de traitement :</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {fileUploads.map((upload, index) => (
+                    {fileUploads
+                      .sort((a, b) => {
+                        // Sort order: thumbnail, qualities, metadata, mongodb
+                        const order = ['thumbnail', 'panorama_thumbnail', 'light', 'medium', 'heavy', 'original', 'metadata', 'mongodb'];
+                        return order.indexOf(a.type) - order.indexOf(b.type);
+                      })
+                      .map((upload, index) => (
                       <div 
                         key={`${upload.fileId}-${upload.type}-${index}`}
                         className={`

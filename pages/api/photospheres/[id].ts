@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import { connectToDB } from '@/lib/mongoose';
+import { PhotosphereModel } from '@/lib/models/PhotosphereModel';
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION!,
@@ -113,9 +115,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 console.log('No objects to delete');
             }
 
+            // After successful S3 deletion, delete from MongoDB
+            try {
+                await connectToDB();
+                const deletedPhotosphere = await PhotosphereModel.findOneAndDelete({ id });
+                
+                if (deletedPhotosphere) {
+                    console.log(`Successfully deleted photosphere ${id} from MongoDB`);
+                } else {
+                    console.log(`Photosphere ${id} not found in MongoDB (may have been deleted already)`);
+                }
+            } catch (mongoError) {
+                console.error('Error deleting photosphere from MongoDB:', mongoError);
+                // Don't fail the entire operation if MongoDB deletion fails
+                // S3 files are already deleted, just log the warning
+                console.warn(`Warning: S3 files deleted but MongoDB deletion failed for photosphere ${id}`);
+            }
+
             return res.status(200).json({ 
                 success: true, 
-                message: `Photosphere ${id} and all its variants deleted successfully`,
+                message: `Photosphere ${id} and all its variants deleted successfully from S3 and MongoDB`,
                 deletedFiles: objects.length
             });
 

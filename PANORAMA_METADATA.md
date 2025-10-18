@@ -32,12 +32,16 @@ For each panorama, a `metadata.json` file will be created with the following str
 {
   "map": "New Gridania",
   "weather": "Fair Skies",
-  "x": 9.11,
-  "y": 11.68,
-  "z": 0.00,
-  "time": 1457
+  "coord": {
+    "x": 9.11,
+    "y": 11.68,
+    "z": 0.00
+  },
+  "time": "1457"
 }
 ```
+
+> **Note**: The `time` field is stored as a string with leading zeros preserved (e.g., "0015" for 12:15 AM). This ensures that early morning times like 00:15 maintain their proper formatting.
 
 ## Upload Structure
 
