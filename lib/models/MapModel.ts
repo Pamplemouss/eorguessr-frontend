@@ -7,10 +7,7 @@ import { Map } from '../types/Map';
 const MarkerSchema = new Schema<Marker>({
 	target: { type: String, required: true },
 	latLng: { type: [Number], required: true },
-	geojson: {
-		area: { type: [[Number]], default: [] },
-		hitbox: { type: [[Number]], default: [] },
-	},
+	geojson: { type: Schema.Types.Mixed, default: {} },
 });
 
 const MapSchema: Schema<Map> = new Schema({

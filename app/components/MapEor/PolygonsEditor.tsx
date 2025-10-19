@@ -63,6 +63,7 @@ const PolygonsEditor = ({ visible }: { visible: boolean }) => {
                     });
                 }
 
+                // Copy the polygon as a complete array
                 const polygonString = JSON.stringify(polygon);
                 console.log("Polygon créé : " + polygonString);
                 copyToClipboard(polygonString);

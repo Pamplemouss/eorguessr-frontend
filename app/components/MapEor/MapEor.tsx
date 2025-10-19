@@ -15,6 +15,24 @@ import getBoundsFromMap from "@/lib/utils/getBoundsFromMap";
 import getCenterFromMap from "@/lib/utils/getCenterFromMap";
 import getZoomFromMap from "@/lib/utils/getZoomFromMap";
 
+// Helper function to normalize geojson data for backward compatibility
+const normalizeGeojsonData = (data: any): [number, number][][] => {
+    if (!data) return [];
+    if (!Array.isArray(data)) return [];
+    
+    // If it's already the new format (array of arrays of coordinates)
+    if (data.length > 0 && Array.isArray(data[0]) && Array.isArray(data[0][0])) {
+        return data as [number, number][][];
+    }
+    
+    // If it's the old format (flat array of coordinates), wrap it in an array
+    if (data.length > 0 && Array.isArray(data[0]) && typeof data[0][0] === 'number') {
+        return [data as [number, number][]];
+    }
+    
+    return [];
+};
+
 export default function MapEor({
     showPolygonsEditor = false,
     dragMode = false,
@@ -92,19 +110,25 @@ export default function MapEor({
                             dragMode={dragMode}
                             idx={idx}
                         />
-                        {marker.geojson?.area && (
+                        {marker.geojson?.area && normalizeGeojsonData(marker.geojson.area)
+                            .filter(polygon => polygon && Array.isArray(polygon) && polygon.length > 0)
+                            .map((polygon, polygonIdx) => (
                             <Polygon
-                                positions={marker.geojson.area}
+                                key={`area-${idx}-${polygonIdx}`}
+                                positions={polygon}
                                 pathOptions={{
                                     stroke: false,
                                     fillOpacity: hoveredIdx === idx ? 0.15 : 0,
                                     fillColor: "white",
                                 }}
                             />
-                        )}
-                        {marker.geojson?.hitbox && (
+                        ))}
+                        {marker.geojson?.hitbox && normalizeGeojsonData(marker.geojson.hitbox)
+                            .filter(polygon => polygon && Array.isArray(polygon) && polygon.length > 0)
+                            .map((polygon, polygonIdx) => (
                             <Polygon
-                                positions={marker.geojson.hitbox}
+                                key={`hitbox-${idx}-${polygonIdx}`}
+                                positions={polygon}
                                 pathOptions={{
                                     color: "transparent",
                                     fillOpacity: 0,
@@ -114,7 +138,7 @@ export default function MapEor({
                                     mouseout: () => setHoveredIdx(null),
                                 }}
                             />
-                        )}
+                        ))}
                     </React.Fragment>
                 ))}
             </MapContainer>

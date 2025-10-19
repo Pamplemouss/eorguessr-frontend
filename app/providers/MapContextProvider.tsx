@@ -94,6 +94,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
                 formToSave.specialCenter = undefined;
                 formToSave.specialZoom = undefined;
             }
+            
 
             const response = await fetch(`/api/maps/${formToSave.id}`, {
                 method: "PUT",

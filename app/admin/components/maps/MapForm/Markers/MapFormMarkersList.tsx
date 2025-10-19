@@ -53,10 +53,12 @@ const MapFormMarkersList = ({
                     <span className="text-xs text-gray-500">
                         [{marker.latLng[0]}, {marker.latLng[1]}]
                     </span>
-                    {marker.geojson && marker.geojson.area &&
-                        (marker.geojson.area.length > 0 || marker.geojson.hitbox.length > 0) && (
-                            <span className="text-sm text-green-600 flex items-center">+<BiPolygon /></span>
-                        )}
+                    {marker.geojson && (
+                        (marker.geojson.area && marker.geojson.area.length > 0) || 
+                        (marker.geojson.hitbox && marker.geojson.hitbox.length > 0)
+                    ) && (
+                        <span className="text-sm text-green-600 flex items-center">+<BiPolygon /></span>
+                    )}
                     <button
                         className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs p-1 rounded-lg"
                         onClick={() => handleEdit(idx)}
