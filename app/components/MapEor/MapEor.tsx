@@ -19,17 +19,17 @@ import getZoomFromMap from "@/lib/utils/getZoomFromMap";
 const normalizeGeojsonData = (data: any): [number, number][][] => {
     if (!data) return [];
     if (!Array.isArray(data)) return [];
-    
+
     // If it's already the new format (array of arrays of coordinates)
     if (data.length > 0 && Array.isArray(data[0]) && Array.isArray(data[0][0])) {
         return data as [number, number][][];
     }
-    
+
     // If it's the old format (flat array of coordinates), wrap it in an array
     if (data.length > 0 && Array.isArray(data[0]) && typeof data[0][0] === 'number') {
         return [data as [number, number][]];
     }
-    
+
     return [];
 };
 
@@ -45,11 +45,11 @@ export default function MapEor({
     useGameContext?: boolean;
 }) {
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-    
+
     // Use the appropriate context based on the prop
     const gameContext = useGameContext ? useGameMap() : null;
     const adminContext = !useGameContext ? useMap() : null;
-    
+
     const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
 
     const bounds = getBoundsFromMap(currentMap);
@@ -113,32 +113,37 @@ export default function MapEor({
                         {marker.geojson?.area && normalizeGeojsonData(marker.geojson.area)
                             .filter(polygon => polygon && Array.isArray(polygon) && polygon.length > 0)
                             .map((polygon, polygonIdx) => (
-                            <Polygon
-                                key={`area-${idx}-${polygonIdx}`}
-                                positions={polygon}
-                                pathOptions={{
-                                    stroke: false,
-                                    fillOpacity: hoveredIdx === idx ? 0.15 : 0,
-                                    fillColor: "white",
-                                }}
-                            />
-                        ))}
+                                <Polygon
+                                    key={`area-${idx}-${polygonIdx}`}
+                                    positions={polygon}
+                                    pathOptions={{
+                                        stroke: false,
+                                        fillOpacity: hoveredIdx === idx ? 0.15 : 0,
+                                        fillColor: "white",
+                                    }}
+                                />
+                            ))}
                         {marker.geojson?.hitbox && normalizeGeojsonData(marker.geojson.hitbox)
                             .filter(polygon => polygon && Array.isArray(polygon) && polygon.length > 0)
                             .map((polygon, polygonIdx) => (
-                            <Polygon
-                                key={`hitbox-${idx}-${polygonIdx}`}
-                                positions={polygon}
-                                pathOptions={{
-                                    color: "transparent",
-                                    fillOpacity: 0,
-                                }}
-                                eventHandlers={{
-                                    mouseover: () => setHoveredIdx(idx),
-                                    mouseout: () => setHoveredIdx(null),
-                                }}
-                            />
-                        ))}
+                                <Polygon
+                                    key={`hitbox-${idx}-${polygonIdx}`}
+                                    positions={polygon}
+                                    pathOptions={{
+                                        color: "transparent",
+                                        fillOpacity: 0,
+                                    }}
+                                    eventHandlers={{
+                                        click: () => {
+                                            if (adminContext?.changeMapEnabled && marker.target) {
+                                                adminContext.setCurrentMapById(marker.target);
+                                            }
+                                        },
+                                        mouseover: () => setHoveredIdx(idx),
+                                        mouseout: () => setHoveredIdx(null),
+                                    }}
+                                />
+                            ))}
                     </React.Fragment>
                 ))}
             </MapContainer>
