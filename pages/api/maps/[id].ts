@@ -21,8 +21,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (req.method === 'PUT') {
-            console.log("Updating map with ID:", id);
-            console.log("Request body:", req.body);
             const updatedMap = await MapModel.findOneAndUpdate(
                 { id },
                 req.body,
