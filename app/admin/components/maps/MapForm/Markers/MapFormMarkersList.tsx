@@ -50,6 +50,11 @@ const MapFormMarkersList = ({
                         }`}
                 >
                     <span className="font-mono">{getMapName(marker.target)}</span>
+                    {marker.useSubAreaCustomName && (
+                        <span className="text-xs text-purple-600 bg-purple-100 px-1 rounded">
+                            Custom Name
+                        </span>
+                    )}
                     <span className="text-xs text-gray-500">
                         [{marker.latLng[0]}, {marker.latLng[1]}]
                     </span>

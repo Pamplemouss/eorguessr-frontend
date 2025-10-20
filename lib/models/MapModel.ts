@@ -6,6 +6,7 @@ import { Map } from '../types/Map';
 
 const MarkerSchema = new Schema<Marker>({
 	target: { type: String, required: true },
+	useSubAreaCustomName: { type: Boolean, default: false },
 	latLng: { type: [Number], required: true },
 	geojson: { type: Schema.Types.Mixed, default: {} },
 });

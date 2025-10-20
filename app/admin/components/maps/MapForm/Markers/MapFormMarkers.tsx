@@ -6,6 +6,7 @@ import MapFormMarkerTarget from "./MapFormMarkerTarget";
 import MapFormMarkerLatLng from "./MapFormMarkerLatLng";
 import MapFormMarkerGeoJSON from "./MapFormMarkerGeoJSON";
 import MapFormMarkerActions from "./MapFormMarkerActions";
+import MapFormMarkerUseSubAreaCustomName from "./MapFormMarkerUseSubAreaCustomName";
 
 export default function MapFormMarkers() {
     const [draft, setDraft] = useState<Marker>(createEmptyMarker());
@@ -38,6 +39,10 @@ export default function MapFormMarkers() {
             {showForm && (
                 <div className="flex flex-col gap-2">
                     <MapFormMarkerTarget
+                        draft={draft}
+                        setDraft={setDraft}
+                    />
+                    <MapFormMarkerUseSubAreaCustomName
                         draft={draft}
                         setDraft={setDraft}
                     />

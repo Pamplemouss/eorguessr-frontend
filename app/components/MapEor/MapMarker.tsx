@@ -27,7 +27,19 @@ const MapMarker = ({
 
     function getTextIcon(markerMap: Map | undefined, isHovered: boolean) {
         if (!currentMap) return;
-        const text = markerMap ? markerMap.name[locale as keyof typeof markerMap.name] || "Unknown" : "Unknown";
+        
+        let text = "Unknown";
+        if (markerMap) {
+            if (marker.useSubAreaCustomName && markerMap.subAreaCustomName) {
+                // Use the custom sub-area name if the option is enabled and it exists
+                text = markerMap.subAreaCustomName[locale as keyof typeof markerMap.subAreaCustomName] || 
+                       markerMap.name[locale as keyof typeof markerMap.name] || "Unknown";
+            } else {
+                // Use the regular map name
+                text = markerMap.name[locale as keyof typeof markerMap.name] || "Unknown";
+            }
+        }
+        
         const isExit = markerMap ? isMapExit(currentMap, markerMap) : false;
         const isDungeon = markerMap?.type === MapType.DUNGEON;
         const html = `

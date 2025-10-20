@@ -115,7 +115,7 @@ const MapList = () => {
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="font-semibold text-gray-900">
-                                            {m.name?.en || "Sans nom"}
+                                            {m.name?.en || "Sans nom"} {m.subAreaCustomName?.en ? `(${m.subAreaCustomName.en})` : ""}
                                         </div>
                                         <div className="flex flex-col gap-1 items-end">
                                             {hasSize && (

@@ -405,7 +405,7 @@ const MapFormSubareas = () => {
                                 value={m.id}
                                 className={currentSubAreas.includes(m.id) ? "bg-blue-100" : ""}
                             >
-                                {currentSubAreas.includes(m.id) ? "✓ " : ""}{m.name?.en || "Sans nom"}
+                                {currentSubAreas.includes(m.id) ? "✓ " : ""}{m.name?.en || "Sans nom"}{m.subAreaCustomName?.en ? ` (${m.subAreaCustomName.en})` : ""}
                             </option>
                         ))}
                     </select>
