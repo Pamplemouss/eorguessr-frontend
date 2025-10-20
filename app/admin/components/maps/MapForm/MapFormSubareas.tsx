@@ -92,13 +92,31 @@ const MapFormSubareas = () => {
             </label>
             {subareasEnabled && (
                 <>
+                    {/* Custom name for this map when used as a subarea */}
+                    <div className="flex flex-col gap-1 p-3 bg-blue-50 rounded border border-blue-200">
+                        <label className="text-sm font-medium">Nom personnalisé pour cette carte (quand utilisée comme sous-zone):</label>
+                        <input
+                            type="text"
+                            placeholder={`Ex: "Merchant Strip" pour Limsa`}
+                            value={currentMap?.subAreaCustomName || ''}
+                            onChange={e => {
+                                if (!currentMap) return;
+                                setCurrentMap({ ...currentMap, subAreaCustomName: e.target.value || "" });
+                            }}
+                            className="border p-2 rounded"
+                        />
+                        <p className="text-xs text-gray-600">
+                            Ce nom sera affiché à la place du nom normal quand cette carte est incluse dans les sous-zones d'une autre carte.
+                        </p>
+                    </div>
+
                     {/* Subareas List with reorder/remove */}
                     <ul className="mb-2">
                         {(currentMap?.subAreas || []).map((id, idx) => {
                             const map = maps.find(m => m.id === id);
                             return (
                                 <li key={id} className="flex items-center gap-2 mb-1">
-                                    <span className="flex-1">{map?.name?.en || id}</span>
+                                    <span className="flex-1">{map?.subAreaCustomName || map?.name?.en || id}</span>
                                     <button
                                         disabled={idx === 0}
                                         onClick={() => moveSubArea(idx, "up")}

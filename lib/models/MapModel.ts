@@ -28,6 +28,7 @@ const MapSchema: Schema<Map> = new Schema({
 	markers: [MarkerSchema],
 	parentMap: { type: String, default: null },
 	subAreas: [String],
+	subAreaCustomName: { type: String, default: null },
 	imagePath: String,
 	specialBounds: { type: [[Number]], default: null },
 	specialCenter: { type: [Number], default: null },

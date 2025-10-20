@@ -18,6 +18,7 @@ export interface Map {
     markers: Marker[];
     parentMap: string | null;
     subAreas?: string[];
+    subAreaCustomName?: string;
     imagePath?: string;
     specialBounds?: L.LatLngBoundsExpression;
     specialCenter?: L.LatLngExpression;
