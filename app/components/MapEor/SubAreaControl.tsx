@@ -28,7 +28,8 @@ function SubAreaContent({
             <div className="absolute z-10 top-0 w-full h-full left-0 blur-sm bg-gradient-to-l from-black/40 via-black/40 via-20% to-transparent"></div>
             {currentMap.subAreas?.map((subAreaId: string) => {
                 const subMap = getMapById(availableMaps, subAreaId);
-                const name = subMap?.subAreaCustomName || subMap?.name[locale as keyof typeof subMap.name] || "Unknown";
+                const name = subMap?.subAreaCustomName?.[locale as keyof typeof subMap.subAreaCustomName] || 
+                           subMap?.name[locale as keyof typeof subMap.name] || "Unknown";
                 const active = currentMap.id === subAreaId;
 
                 return (
