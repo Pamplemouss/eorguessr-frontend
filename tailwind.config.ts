@@ -11,6 +11,7 @@ const config: Config = {
 		extend: {
 			fontFamily: {
 				'myriad-cond': ["ui-sans-serif", "'Myriad Pro Condensed'"],
+				'noto-jp': ["'Noto Sans JP'", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
 			},
 			textShadow: {
 				DEFAULT: '1px 0px 2px var(--tw-shadow-color), -1px 0px 2px var(--tw-shadow-color), 0px 1px 2px var(--tw-shadow-color), 0px -1px 2px var(--tw-shadow-color)',

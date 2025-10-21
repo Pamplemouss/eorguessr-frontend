@@ -9,6 +9,19 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'Noto Sans JP';
+    src: url('/fonts/NotoSansJP.ttf') format('truetype');
+    font-weight: 400;
+    font-display: swap;
+}
+
+/* Global font classes for locale switching */
+body.font-noto-jp,
+body.font-noto-jp * {
+    font-family: 'Noto Sans JP', ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+}
+
 .leaflet-top.leaflet-right .leaflet-control {
     margin: 0px;
 }
