@@ -179,9 +179,9 @@ const MapFormSubareas = () => {
         }
     };
 
-    // useEffect, if subAreasCustomName change and is not empty, enable toggle
+    
     useEffect(() => {
-        if (currentMap?.subAreaCustomName && Object.values(currentMap.subAreaCustomName).some(name => name.trim() !== "")) {
+        if (currentMap?.subAreaCustomName) {
             setSubareasEnabled(true);
             ensureSelfInSubAreas();
         }
