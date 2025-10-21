@@ -127,10 +127,14 @@ export function generateMapFilename(mapName: string, subName?: string, expansion
             return 'unknown';
         }
         
-        // Handle if already an enum value (uppercase or lowercase)
-        const validEnums = ['ARR', 'HW', 'SB', 'ShB', 'EW', 'DT'];
+        // Handle if already an enum value (case insensitive)
+        const validEnums = ['ARR', 'HW', 'SB', 'SHB', 'EW', 'DT'];
         const upperExpansion = expansion.toUpperCase();
         if (validEnums.includes(upperExpansion)) {
+            // Special case for ShB -> shb
+            if (upperExpansion === 'SHB') {
+                return 'shb';
+            }
             return upperExpansion.toLowerCase();
         }
         
