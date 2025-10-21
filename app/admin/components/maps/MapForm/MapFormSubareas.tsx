@@ -179,14 +179,6 @@ const MapFormSubareas = () => {
         }
     };
 
-    
-    useEffect(() => {
-        if (currentMap?.subAreaCustomName) {
-            setSubareasEnabled(true);
-            ensureSelfInSubAreas();
-        }
-    }, [currentMap?.subAreaCustomName]);
-
     return (
         <div className="flex flex-col gap-2">
             <label className="font-bold flex items-center gap-2">
