@@ -1,12 +1,21 @@
 import { useMap } from '@/app/providers/MapContextProvider';
 import { MapName } from '@/lib/types/Map';
+import { Expansion } from '@/lib/types/Expansion';
+import { createEmptyMap } from '@/lib/utils/createEmptyMap';
+import { FFXIVMapTranslations, generateMapFilename } from '@/lib/services/ffxivAPI';
+import { useMapImageUploader } from '@/app/hooks/useMapImageUploader';
+import { compressImageToWebP } from '@/lib/utils/mapImageUtils';
+import FFXIVMapSearch from './FFXIVMapSearch';
 import React, { useState } from 'react'
+import { FaGamepad, FaExclamationTriangle } from 'react-icons/fa';
 
 const MapFormName = () => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap, maps } = useMap();
     const [dataInput, setDataInput] = useState('');
     const [dataError, setDataError] = useState('');
     const [showImportSection, setShowImportSection] = useState(false);
+    const [showFFXIVSearch, setShowFFXIVSearch] = useState(false);
+    const [sizeFactorWarning, setSizeFactorWarning] = useState<string | null>(null);
 
     function updateMapNameLocale(
         locale: keyof MapName,
@@ -76,8 +85,175 @@ const MapFormName = () => {
         }
     };
 
+    const { uploadMapImage } = useMapImageUploader();
+    
+    /**
+     * Calculate map size based on FFXIV size factor
+     */
+    const calculateMapSize = (sizeFactor: number): { x: number; y: number; warning?: string } => {
+        switch (sizeFactor) {
+            case 200:
+                return { x: 21.4, y: 21.4 };
+            case 100:
+                return { x: 41.9, y: 41.9 };
+            default:
+                return { 
+                    x: 41.9, 
+                    y: 41.9, 
+                    warning: `Unknown size factor: ${sizeFactor}. Using default size (41.9x41.9). Please check this manually.`
+                };
+        }
+    };
+    
+    const handleFFXIVMapSelect = async (ffxivMap: FFXIVMapTranslations) => {
+        try {
+            // Create a new map with FFXIV data
+            const newMap = createEmptyMap();
+            
+            // Set the map names from FFXIV data
+            newMap.name = {
+                en: ffxivMap.mapName.en || '',
+                fr: ffxivMap.mapName.fr || '',
+                de: ffxivMap.mapName.de || '',
+                ja: ffxivMap.mapName.ja || ''
+            };
+            
+            // Map FFXIV expansion to our expansion enum
+            const expansionMapping: Record<string, Expansion> = {
+                'A Realm Reborn': Expansion.ARR,
+                'Heavensward': Expansion.HW,
+                'Stormblood': Expansion.SB,
+                'Shadowbringers': Expansion.ShB,
+                'Endwalker': Expansion.EW,
+                'Dawntrail': Expansion.DT
+            };
+            
+            const ffxivExpansion = ffxivMap.expansion.en || '';
+            newMap.expansion = expansionMapping[ffxivExpansion] || Expansion.ARR;
+            
+            // Calculate map size based on FFXIV size factor
+            const sizeResult = calculateMapSize(ffxivMap.sizeFactor);
+            newMap.size = {
+                x: sizeResult.x,
+                y: sizeResult.y
+            };
+            
+            // Show warning if unknown size factor
+            if (sizeResult.warning) {
+                setSizeFactorWarning(sizeResult.warning);
+            }
+            
+            // Auto-enable subareas if there's a sub place name
+            const hasSubName = ffxivMap.placeNameSub.en?.trim();
+            if (hasSubName) {
+                newMap.subAreas = []; // Enable subareas (ensureSelfInSubAreas will add the map ID)
+                newMap.subAreaCustomName = {
+                    en: ffxivMap.placeNameSub.en || '',
+                    fr: ffxivMap.placeNameSub.fr || '',
+                    de: ffxivMap.placeNameSub.de || '',
+                    ja: ffxivMap.placeNameSub.ja || ''
+                };
+            }
+            
+            // Try to find a matching region by name (English) if we have region data
+            if (ffxivMap.placeNameRegion.en) {
+                const matchingRegion = maps
+                    .filter(m => m.type === 'REGION')
+                    .find(region => {
+                        const regionName = region.name?.en?.toLowerCase() || '';
+                        const ffxivRegionName = ffxivMap.placeNameRegion.en.toLowerCase();
+                        return regionName.includes(ffxivRegionName) || ffxivRegionName.includes(regionName);
+                    });
+                
+                if (matchingRegion) {
+                    newMap.region = matchingRegion.id;
+                }
+            }
+            
+            // Handle image download and upload if available
+            if (ffxivMap.mapImageId) {
+                try {
+                    // Get image info from our API
+                    const imageResponse = await fetch('/api/ffxiv/maps/image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            mapImageId: ffxivMap.mapImageId,
+                            mapName: ffxivMap.mapName,
+                            placeNameSub: ffxivMap.placeNameSub
+                        })
+                    });
+                    
+                    if (imageResponse.ok) {
+                        const { image } = await imageResponse.json();
+                        
+                        // Download the image
+                        const imageBlob = await fetch(image.imageUrl);
+                        const imageFile = new File([await imageBlob.blob()], image.suggestedFilename);
+                        
+                        // Convert to WebP and upload using the suggested filename logic
+                        const webpBlob = await compressImageToWebP(imageFile, 0.8);
+                        const webpFile = new File([webpBlob], image.suggestedFilename, { type: 'image/webp' });
+                        
+                        // Upload to S3 using existing functionality
+                        // Use the suggested filename (without .webp extension) as the map name
+                        const mapNameForUpload = image.suggestedFilename.replace('.webp', '');
+                        const uploadedUrl = await uploadMapImage(webpFile, mapNameForUpload);
+                        if (uploadedUrl) {
+                            newMap.imagePath = uploadedUrl;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Failed to process FFXIV image:', error);
+                    // Continue without image - user can upload manually later
+                }
+            }
+            
+            // Store FFXIV metadata for reference
+            console.log('FFXIV Map Data imported:', {
+                mapId: ffxivMap.id,
+                imageId: ffxivMap.mapImageId,
+                region: ffxivMap.placeNameRegion,
+                subArea: ffxivMap.placeNameSub,
+                expansion: ffxivMap.expansion,
+                sizeFactor: ffxivMap.sizeFactor,
+                size: newMap.size
+            });
+            
+            // Set the new map as current
+            setCurrentMap(newMap);
+            setShowFFXIVSearch(false);
+            
+            // Clear any previous warnings if this import is successful with known size factor
+            if (ffxivMap.sizeFactor === 100 || ffxivMap.sizeFactor === 200) {
+                setSizeFactorWarning(null);
+            }
+            
+        } catch (error) {
+            console.error('Error importing FFXIV map:', error);
+            alert('Error importing map. Please try again.');
+        }
+    };
+
     return (
         <div className="space-y-4">
+            {/* Size Factor Warning */}
+            {sizeFactorWarning && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-3">
+                    <FaExclamationTriangle className="text-red-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                        <p className="text-red-800 text-sm font-medium">Size Factor Warning</p>
+                        <p className="text-red-700 text-sm">{sizeFactorWarning}</p>
+                    </div>
+                    <button
+                        onClick={() => setSizeFactorWarning(null)}
+                        className="text-red-400 hover:text-red-600"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
+            
             {/* Individual Name Fields */}
             <div className="grid grid-cols-2 gap-2">
                 <div className={`flex items-center rounded-full border overflow-hidden min-w-0 flex-1 ${isFieldEmpty("en")
@@ -200,7 +376,16 @@ const MapFormName = () => {
                 </div>
             )}
             {/* Toggle Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+                <button
+                    type="button"
+                    onClick={() => setShowFFXIVSearch(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 border border-blue-600 flex items-center gap-2 text-sm font-medium"
+                >
+                    <FaGamepad />
+                    Import from FFXIV
+                </button>
+                
                 <button
                     type="button"
                     onClick={() => setShowImportSection(!showImportSection)}
@@ -209,6 +394,14 @@ const MapFormName = () => {
                     {showImportSection ? 'Hide Import' : 'Import from Text'}
                 </button>
             </div>
+            
+            {/* FFXIV Search Modal */}
+            {showFFXIVSearch && (
+                <FFXIVMapSearch
+                    onMapSelect={handleFFXIVMapSelect}
+                    onClose={() => setShowFFXIVSearch(false)}
+                />
+            )}
         </div>
     )
 }

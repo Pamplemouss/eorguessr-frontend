@@ -7,6 +7,7 @@ import AdminMapTypeSelector from "./maps/AdminMapTypeSelector";
 import MapForm from "./maps/MapForm/MapForm";
 import AdminMapError from "./maps/AdminMapError";
 import MapSettings from "./maps/MapSettings";
+import { S3FilenameMigrator } from "./S3FilenameMigrator";
 
 export default function MapsTab() {
     const [showPolygonsEditor, setShowPolygonsEditor] = useState(false);
@@ -30,6 +31,11 @@ export default function MapsTab() {
                             <div className="w-[500px] flex flex-col gap-4 max-h-[1000px] overflow-auto">
                                 <MapForm />
                             </div>
+                        </div>
+                        
+                        {/* S3 Filename Migration Tool */}
+                        <div className="mt-6 w-full max-w-6xl">
+                            <S3FilenameMigrator />
                         </div>
                     </div>
 

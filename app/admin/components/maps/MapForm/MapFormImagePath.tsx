@@ -1,12 +1,16 @@
 import { useMap } from '@/app/providers/MapContextProvider';
 import { useMapImageUploader } from '@/app/hooks/useMapImageUploader';
-import React, { useRef } from 'react';
-import { FaUpload, FaSpinner, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
+import React, { useRef, useState } from 'react';
+import { FaUpload, FaSpinner, FaCheck, FaExclamationTriangle, FaGamepad } from 'react-icons/fa';
+import FFXIVImageSearch from './FFXIVImageSearch';
+import { compressImageToWebP } from '@/lib/utils/mapImageUtils';
 
 const MapFormImagePath = () => {
     const { currentMap, setCurrentMap } = useMap();
     const { uploadState, uploadMapImage, reset } = useMapImageUploader();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showFFXIVSearch, setShowFFXIVSearch] = useState(false);
+    const [isDownloadingFFXIV, setIsDownloadingFFXIV] = useState(false);
     
     const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -22,10 +26,88 @@ const MapFormImagePath = () => {
             return;
         }
 
-        const uploadedPath = await uploadMapImage(file, mapNameEn);
+        const uploadedPath = await uploadMapImage(
+            file, 
+            mapNameEn, 
+            currentMap?.subAreaCustomName?.en, 
+            currentMap?.expansion, 
+            currentMap?.type
+        );
         if (uploadedPath && currentMap) {
             setCurrentMap({ ...currentMap, imagePath: uploadedPath });
         }
+    };
+
+    const handleFFXIVImageSelect = async (imageUrl: string, filename: string) => {
+        setIsDownloadingFFXIV(true);
+        try {
+            // Download the image from FFXIV API
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+                throw new Error(`Failed to download image: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            
+            // Convert blob to File object
+            const file = new File([blob], filename, { type: blob.type });
+
+            // Compress to WebP using existing utility
+            const compressedBlob = await compressImageToWebP(file, 0.7, 2048, 2048);
+            
+            // Get signed URL for upload
+            const s3Key = `maps/${filename}`;
+            const urlResponse = await fetch('/api/upload-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fileName: filename,
+                    fileType: 'image/webp',
+                    customKey: s3Key
+                })
+            });
+
+            if (!urlResponse.ok) {
+                const errorData = await urlResponse.json();
+                throw new Error(errorData.error || 'Failed to get upload URL');
+            }
+
+            const { uploadUrl } = await urlResponse.json();
+
+            // Upload to S3
+            const uploadResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'image/webp' },
+                body: compressedBlob
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Failed to upload to S3');
+            }
+
+            // Update the map with the new image path
+            if (currentMap) {
+                setCurrentMap({ ...currentMap, imagePath: filename });
+            }
+
+            setShowFFXIVSearch(false);
+            
+        } catch (error) {
+            console.error('FFXIV image download/upload failed:', error);
+            throw error; // Re-throw so the modal can show the error
+        } finally {
+            setIsDownloadingFFXIV(false);
+        }
+    };
+
+    const handleFFXIVSearchClick = () => {
+        // Check if we have the English name for searching
+        const mapNameEn = currentMap?.name?.en;
+        if (!mapNameEn?.trim()) {
+            alert('Veuillez d\'abord saisir le nom de la carte en anglais pour rechercher des images FFXIV.');
+            return;
+        }
+        setShowFFXIVSearch(true);
     };
 
     const handleUploadClick = () => {
@@ -97,6 +179,29 @@ const MapFormImagePath = () => {
                 >
                     {getUploadButtonContent()}
                 </button>
+                <button
+                    type="button"
+                    onClick={handleFFXIVSearchClick}
+                    disabled={isDownloadingFFXIV}
+                    className={`px-4 py-2 rounded flex items-center gap-2 text-sm font-medium transition-colors ${
+                        isDownloadingFFXIV
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
+                    }`}
+                    title="Rechercher des images FFXIV pour cette carte"
+                >
+                    {isDownloadingFFXIV ? (
+                        <>
+                            <FaSpinner className="animate-spin" />
+                            <span>FFXIV</span>
+                        </>
+                    ) : (
+                        <>
+                            <FaGamepad />
+                            <span>FFXIV</span>
+                        </>
+                    )}
+                </button>
             </div>
             
             {uploadState.error && (
@@ -114,7 +219,7 @@ const MapFormImagePath = () => {
             <div className="text-xs text-gray-500">
                 L'image sera compressée en WebP (70% qualité) et nommée d'après le nom anglais de la carte.
                 <br />
-                Formats acceptés: JPEG, PNG, WebP (max 20MB)
+                Formats acceptés: JPEG, PNG, WebP (max 20MB). Utilisez le bouton FFXIV pour rechercher des images officielles.
             </div>
 
             <input
@@ -124,6 +229,15 @@ const MapFormImagePath = () => {
                 onChange={handleFileSelect}
                 className="hidden"
             />
+
+            {/* FFXIV Image Search Modal */}
+            {showFFXIVSearch && currentMap?.name?.en && (
+                <FFXIVImageSearch
+                    mapName={currentMap.name.en}
+                    onImageSelect={handleFFXIVImageSelect}
+                    onClose={() => setShowFFXIVSearch(false)}
+                />
+            )}
         </div>
     )
 }

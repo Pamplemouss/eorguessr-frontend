@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { toCamelCase, compressImageToWebP, validateImageFile } from '@/lib/utils/mapImageUtils';
+import { generateMapFilename } from '@/lib/services/ffxivAPI';
 
 interface MapImageUploadState {
     isUploading: boolean;
@@ -12,7 +13,7 @@ interface MapImageUploadState {
 
 interface UseMapImageUploaderReturn {
     uploadState: MapImageUploadState;
-    uploadMapImage: (file: File, mapNameEn: string) => Promise<string | null>;
+    uploadMapImage: (file: File, mapNameEn: string, subareaCustomNameEn?: string, expansion?: string, mapType?: string) => Promise<string | null>;
     reset: () => void;
 }
 
@@ -22,7 +23,7 @@ export const useMapImageUploader = (): UseMapImageUploaderReturn => {
         progress: 0
     });
 
-    const uploadMapImage = useCallback(async (file: File, mapNameEn: string): Promise<string | null> => {
+    const uploadMapImage = useCallback(async (file: File, mapNameEn: string, subareaCustomNameEn?: string, expansion?: string, mapType?: string): Promise<string | null> => {
         // Reset state
         setUploadState({
             isUploading: true,
@@ -58,9 +59,8 @@ export const useMapImageUploader = (): UseMapImageUploaderReturn => {
             
             setUploadState(prev => ({ ...prev, progress: 40 }));
 
-            // Generate filename
-            const camelCaseName = toCamelCase(mapNameEn.trim());
-            const fileName = `${camelCaseName}.webp`;
+            // Generate filename using centralized sanitization
+            const fileName = generateMapFilename(mapNameEn.trim(), subareaCustomNameEn?.trim(), expansion, mapType);
             const s3Key = `maps/${fileName}`;
 
             setUploadState(prev => ({ ...prev, progress: 60 }));
