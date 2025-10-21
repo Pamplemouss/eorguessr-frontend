@@ -179,6 +179,14 @@ const MapFormSubareas = () => {
         }
     };
 
+    // useEffect, if subAreasCustomName change and is not empty, enable toggle
+    useEffect(() => {
+        if (currentMap?.subAreaCustomName && Object.values(currentMap.subAreaCustomName).some(name => name.trim() !== "")) {
+            setSubareasEnabled(true);
+            ensureSelfInSubAreas();
+        }
+    }, [currentMap?.subAreaCustomName]);
+
     return (
         <div className="flex flex-col gap-2">
             <label className="font-bold flex items-center gap-2">
