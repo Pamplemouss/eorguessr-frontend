@@ -18,6 +18,8 @@ interface MapContextType {
     deleteMap: (mapId: string) => Promise<void>;
     changeMapEnabled: boolean;
     setChangeMapEnabled: (enabled: boolean) => void;
+    showMapDetails?: boolean;
+    setShowMapDetails?: (show: boolean) => void;
 }
 
 const MapContext = createContext<MapContextType>({
@@ -32,6 +34,8 @@ const MapContext = createContext<MapContextType>({
     deleteMap: async () => { },
     changeMapEnabled: true,
     setChangeMapEnabled: () => { },
+    showMapDetails: true,
+    setShowMapDetails: () => { },
 });
 
 export function MapProvider({ children }: { children: ReactNode }) {
@@ -40,6 +44,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [changeMapEnabled, setChangeMapEnabled] = useState(true);
+    const [showMapDetails, setShowMapDetails] = useState(true);
 
     const fetchMaps = async () => {
         setIsLoading(true);
@@ -192,6 +197,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
                 deleteMap,
                 changeMapEnabled,
                 setChangeMapEnabled,
+                showMapDetails,
+                setShowMapDetails,
             }}
         >
             {children}

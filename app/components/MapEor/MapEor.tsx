@@ -52,6 +52,9 @@ export default function MapEor({
 
     const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
 
+    // Only adminContext has showMapDetails
+    const showMapDetails = !useGameContext ? adminContext?.showMapDetails : true;
+
     const bounds = getBoundsFromMap(currentMap);
 
     const boundsArray = Array.isArray(bounds) ? bounds : [bounds.getSouthWest(), bounds.getNorthEast()];
@@ -101,7 +104,7 @@ export default function MapEor({
                 <SubAreaControl useGameContext={useGameContext} />
                 {currentMap.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
                 <PolygonsEditor visible={showPolygonsEditor} />
-                {currentMap.markers?.map((marker, idx) => (
+                {showMapDetails && currentMap.markers?.map((marker, idx) => (
                     <React.Fragment key={idx}>
                         <MapMarker
                             marker={marker}

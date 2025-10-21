@@ -1,5 +1,5 @@
 import { invLerp, lerp } from "@/lib/utils/lerp";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useMap as useLeafletMap } from "react-leaflet";
 import { useGameMap } from "@/app/providers/GameMapContextProvider";
 import { useMap } from "@/app/providers/MapContextProvider";
@@ -13,11 +13,13 @@ function ControlButton({
     title,
     children,
     disabled = false,
+    active = false,
 }: {
     onClick: () => void;
     title: string;
     children: React.ReactNode;
     disabled?: boolean;
+    active?: boolean;
 }) {
     return (
         <div
@@ -25,23 +27,27 @@ function ControlButton({
                 if (!disabled) onClick();
             }}
             title={title}
-            className={`m-0.5 -rotate-90 overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] outline-t outline-yellow-300/50 ${disabled ? "opacity-40" : "cursor-pointer hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033]"}`}
+            className={`m-0.5 -rotate-90 overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] outline-t outline-yellow-300/50 ${disabled ? "opacity-40" : "cursor-pointer hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033]"} ${active ? "ring-2 ring-yellow-400" : ""}`}
         >
             {children}
         </div>
     );
 }
 
-function ZoomSliderComponent({
+function MapControlComponent({
     leafletMap,
     currentMap,
     setCurrentMapById,
     maps,
+    showMapDetails,
+    setShowMapDetails,
 }: {
     leafletMap: L.Map;
     currentMap: any;
     setCurrentMapById: (id: string | null) => void;
     maps: Map[];
+    showMapDetails?: boolean;
+    setShowMapDetails?: (show: boolean) => void;
 }) {
     const [value, setValue] = useState(invLerp(leafletMap.getMinZoom(), leafletMap.getMaxZoom(), leafletMap.getZoom()) * 100);
 
@@ -87,6 +93,10 @@ function ZoomSliderComponent({
         if (hasAncestorMap) setCurrentMapById(hasAncestorMap);
     };
 
+    const handleShowMapDetailsClick = () => {
+        setShowMapDetails?.(!showMapDetails);
+    };
+
     return (
         <div className="flex rotate-90 origin-top-left absolute -top-2 left-4">
             <ControlButton
@@ -103,6 +113,13 @@ function ZoomSliderComponent({
             >
                 <FaLongArrowAltUp className="text-slate-900 text-[1rem] z-10" />
                 <FaLongArrowAltUp className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
+            </ControlButton>
+            <ControlButton
+                onClick={handleShowMapDetailsClick}
+                title={showMapDetails ? "Hide map details" : "Show map details"}
+                active={showMapDetails}
+            >
+                <span>T</span>
             </ControlButton>
             <ControlButton
                 onClick={() => leafletMap.zoomIn()}
@@ -134,56 +151,79 @@ export default function MapControl({ useGameContext = false }: { useGameContext?
     // Use the appropriate context based on the prop
     const gameContext = useGameContext ? useGameMap() : null;
     const adminContext = !useGameContext ? useMap() : null;
-    
+
     const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
     const setCurrentMapById = useGameContext ? gameContext!.setCurrentMapById : adminContext!.setCurrentMapById;
     const availableMaps = useGameContext ? gameContext!.availableMaps : adminContext!.maps;
-    
+    // Only adminContext has showMapDetails and setShowMapDetails
+    const showMapDetails = !useGameContext ? adminContext?.showMapDetails : undefined;
+    const setShowMapDetails = !useGameContext ? adminContext?.setShowMapDetails : undefined;
+
     const leafletMap = useLeafletMap();
+    // Store the root and div so we can update the React component without re-creating the control
+    const controlRef = useRef<L.Control | null>(null);
+    const divRef = useRef<HTMLDivElement | null>(null);
+    const rootRef = useRef<ReturnType<typeof createRoot> | null>(null);
 
+    // Create the control only once
     useEffect(() => {
+        if (!leafletMap) return;
+        if (controlRef.current) return;
         const control = new L.Control({ position: "topleft" });
-
         control.onAdd = function () {
             const div = L.DomUtil.create('div', 'custom-zoom-control');
-
-            // Prevent map interactions when interacting with the control
+            divRef.current = div;
             L.DomEvent.disableClickPropagation(div);
             L.DomEvent.disableScrollPropagation(div);
-
-            // Create React root and render component
             const root = createRoot(div);
+            rootRef.current = root;
+            // Initial render
             root.render(
-                <ZoomSliderComponent
+                <MapControlComponent
                     leafletMap={leafletMap}
                     currentMap={currentMap}
                     setCurrentMapById={setCurrentMapById}
                     maps={availableMaps}
+                    showMapDetails={showMapDetails}
+                    setShowMapDetails={setShowMapDetails}
                 />
             );
-
-            // Store root for cleanup
             (div as any)._reactRoot = root;
-
             return div;
         };
-
-        control.onRemove = function (map) {
-            const div = this.getContainer();
+        control.onRemove = function () {
+            const div = divRef.current;
             if (div && (div as any)._reactRoot) {
-                // Defer the unmounting to avoid race condition
                 setTimeout(() => {
                     (div as any)._reactRoot.unmount();
                 }, 0);
             }
         };
-
         leafletMap.addControl(control);
-
+        controlRef.current = control;
         return () => {
             leafletMap.removeControl(control);
+            controlRef.current = null;
+            divRef.current = null;
+            rootRef.current = null;
         };
     }, [leafletMap]);
+
+    // Update the React component inside the control when props change
+    useEffect(() => {
+        if (rootRef.current && divRef.current) {
+            rootRef.current.render(
+                <MapControlComponent
+                    leafletMap={leafletMap}
+                    currentMap={currentMap}
+                    setCurrentMapById={setCurrentMapById}
+                    maps={availableMaps}
+                    showMapDetails={showMapDetails}
+                    setShowMapDetails={setShowMapDetails}
+                />
+            );
+        }
+    }, [leafletMap, currentMap, setCurrentMapById, availableMaps, showMapDetails, setShowMapDetails]);
 
     return null;
 }
