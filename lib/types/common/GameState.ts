@@ -19,6 +19,12 @@ export class Photosphere extends Schema {
     @type(Coordinate) coord = new Coordinate();
 }
 
+export class RoundResult extends Schema {
+    @type("int8") roundNumber: number = 0;
+    @type(Photosphere) photosphere = new Photosphere();
+    @type({map: Player}) playerResults = new MapSchema<Player>();
+}
+
 export class GameState extends Schema {
     @type({ map: Player }) players = new MapSchema<Player>();
     @type("int8") currentRound: number = 0;
@@ -30,4 +36,6 @@ export class GameState extends Schema {
     @type(["string"]) selectedMapTypes = new ArraySchema<string>();
     @type([Photosphere]) gamePhotospheres = new ArraySchema<Photosphere>();
     @type(Photosphere) currentPhotosphere = new Photosphere();
+    @type([RoundResult]) roundHistory = new ArraySchema<RoundResult>();
+    @type("number") resultDisplayStartTime: number = 0;
 }

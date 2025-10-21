@@ -42,6 +42,8 @@ export interface MapEorProps {
     changeMapEnabled?: boolean;
     onMapChange?: (mapId: string) => void;
     onShowMapDetailsChange?: (show: boolean) => void;
+    onMapClick?: (lat: number, lng: number) => void;
+    customMarkers?: React.ReactNode;
 }
 
 export default function MapEor({
@@ -54,6 +56,8 @@ export default function MapEor({
     changeMapEnabled = false,
     onMapChange,
     onShowMapDetailsChange,
+    onMapClick,
+    customMarkers,
 }: MapEorProps) {
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
@@ -101,7 +105,7 @@ export default function MapEor({
                 minZoom={1}
                 maxZoom={5}
             >
-                <MapMouseTracker currentMap={currentMap} />
+                <MapMouseTracker currentMap={currentMap} onMapClick={onMapClick} />
                 <MapControl 
                     currentMap={currentMap}
                     allMaps={allMaps}
@@ -165,6 +169,7 @@ export default function MapEor({
                             ))}
                     </React.Fragment>
                 ))}
+                {customMarkers}
             </MapContainer>
             <div
                 className="absolute top-0 left-0 w-full h-full z-10 bg-black/80 backdrop-blur pointer-events-none"

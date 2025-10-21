@@ -43,13 +43,11 @@ export function GameMapProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    // Auto-select the first world map when available maps change
+    // Auto-select the first available map when maps change, but allow free navigation
     useEffect(() => {
         if (availableMaps.length > 0 && (!currentMap?.id || !availableMaps.find(m => m.id === currentMap.id))) {
-            // Find the first world map, or fallback to first map
-            const firstWorldMap = availableMaps.find(m => m.type === 'WORLD_MAP');
-            const mapToSelect = firstWorldMap || availableMaps[0];
-            setCurrentMap(mapToSelect);
+            // Just select the first available map, don't restrict to photosphere map
+            setCurrentMap(availableMaps[0]);
         }
     }, [availableMaps, currentMap]);
 

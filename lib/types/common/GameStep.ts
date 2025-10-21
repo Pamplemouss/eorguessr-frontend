@@ -1,5 +1,6 @@
 export enum GameStep {
     LOBBY,
-    PLAYING,
-    FINISHED,
+    GUESSING,
+    RESULT,
+    RECAP,
 }

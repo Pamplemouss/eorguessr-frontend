@@ -3,7 +3,12 @@ import getBoundsFromMap from '@/lib/utils/getBoundsFromMap';
 import React, { useState } from 'react'
 import { useMapEvents } from 'react-leaflet';
 
-const MapMouseTracker = ({ currentMap }: { currentMap: Map }) => {
+interface MapMouseTrackerProps {
+    currentMap: Map;
+    onMapClick?: (lat: number, lng: number) => void;
+}
+
+const MapMouseTracker = ({ currentMap, onMapClick }: MapMouseTrackerProps) => {
     const [cursorCoord, setCursorCoord] = useState<{ lat: number; lng: number } | null>(null);
 
     const bounds = getBoundsFromMap(currentMap) as [[number, number], [number, number]];
@@ -37,6 +42,26 @@ const MapMouseTracker = ({ currentMap }: { currentMap: Map }) => {
             setCursorCoord({ lat: e.latlng.lat, lng: e.latlng.lng });
         },
         mouseout: () => setCursorCoord(null), // Reset coordinates on mouse out
+        click: (e) => {
+            // Check if the click is on the map itself, not a marker or other element
+            const target = e.originalEvent?.target as HTMLElement;
+            if (target && (target.classList.contains('leaflet-marker-icon') || target.closest('.leaflet-marker-icon'))) {
+                return; // Don't handle clicks on markers
+            }
+            
+            // Check if coordinates are within bounds
+            if (e.latlng.lat >= bounds[0][0] && e.latlng.lat <= bounds[1][0] &&
+                e.latlng.lng >= bounds[0][1] && e.latlng.lng <= bounds[1][1]) {
+                
+                // Convert to real coordinates and trigger callback
+                const realX = (e.latlng.lng + leafletMapXSize / 2) * scaleX + 1;
+                const realY = (-e.latlng.lat + leafletMapYSize / 2) * scaleY + 1;
+                
+                if (onMapClick) {
+                    onMapClick(realY, realX); // Note: lat, lng order
+                }
+            }
+        },
     });
 
     return (
