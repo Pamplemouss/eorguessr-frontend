@@ -7,19 +7,25 @@ import L from 'leaflet';
 import { createRoot } from 'react-dom/client';
 import { FaLongArrowAltUp, FaMinus, FaPlus } from "react-icons/fa";
 import { Map } from "@/lib/types/Map";
+import Image from "next/image";
+
 
 function ControlButton({
     onClick,
     title,
-    children,
     disabled = false,
     active = false,
+    imageSrc,
+    alt,
+    className = "",
 }: {
     onClick: () => void;
     title: string;
-    children: React.ReactNode;
     disabled?: boolean;
     active?: boolean;
+    imageSrc: string;
+    alt: string;
+    className?: string;
 }) {
     return (
         <div
@@ -27,9 +33,32 @@ function ControlButton({
                 if (!disabled) onClick();
             }}
             title={title}
-            className={`m-0.5 -rotate-90 overflow-hidden relative flex justify-center items-center rounded shadow w-5 h-5 shadow-black bg-gradient-to-tr from-[#513b1e] via-[#b49665] to-[#513b1e] outline-t outline-yellow-300/50 ${disabled ? "opacity-40" : "cursor-pointer hover:from-[#665033] hover:via-[#c9b17a] hover:to-[#665033]"} ${active ? "ring-2 ring-yellow-400" : ""}`}
+            className={`-rotate-90 flex items-center justify-center relative ${disabled ? "opacity-40 pointer-events-none" : "cursor-pointer"} ${className}`}
+            style={{ minWidth: 24, minHeight: 24 }}
         >
-            {children}
+            {active && (
+                <Image
+                    src="/map/outline_icon.png"
+                    alt="Map Outline Icon"
+                    width={24}
+                    height={24}
+                    className="absolute top-0 left-0 z-10"
+                    style={{ pointerEvents: 'none' }}
+                />
+            )}
+            <Image
+                src={imageSrc}
+                alt={alt}
+                width={24}
+                height={24}
+                className={
+                    !disabled
+                        ? active
+                            ? "filter brightness-[140%] grayscale-[20%]"
+                            : "filter hover:brightness-[115%]"
+                        : undefined
+                }
+            />
         </div>
     );
 }
@@ -103,46 +132,44 @@ function MapControlComponent({
                 onClick={handleAncestorMapClick}
                 title={hasAncestorMap ? "Go to ancestor map" : "No ancestor map"}
                 disabled={!hasAncestorMap}
-            >
-                <div className="w-3 h-2.5 shadow-sm shadow-yellow-200 border border-black m-auto"></div>
-            </ControlButton>
+                imageSrc="/map/ancestor_icon.png"
+                alt="Map Ancestor Icon"
+            />
             <ControlButton
                 onClick={handleParentMapClick}
                 title={hasParentMap ? "Go to parent map" : "No parent map"}
                 disabled={!hasParentMap}
-            >
-                <FaLongArrowAltUp className="text-slate-900 text-[1rem] z-10" />
-                <FaLongArrowAltUp className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
-            </ControlButton>
+                imageSrc="/map/up_icon.png"
+                alt="Map Up Icon"
+            />
             <ControlButton
                 onClick={handleShowMapDetailsClick}
                 title={showMapDetails ? "Hide map details" : "Show map details"}
                 active={showMapDetails}
-            >
-                <span>T</span>
-            </ControlButton>
+                imageSrc="/map/text_icon.png"
+                alt="Map Text Icon"
+            />
             <ControlButton
                 onClick={() => leafletMap.zoomIn()}
                 title="Zoom in"
-            >
-                <FaPlus className="text-slate-900 text-[1rem] z-10" />
-                <FaPlus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
-            </ControlButton>
+                imageSrc="/map/zoom_icon.png"
+                alt="Map Zoom Icon"
+                className="ml-2"
+            />
             <input
                 type="range"
                 min="0"
                 max="100"
                 value={value}
                 onChange={handleOnChange}
-                className="zoom-slider w-24 4k:w-40 rotate-180 origin-center accent-red-300 ml-0.5"
+                className="zoom-slider w-24 4k:w-40 rotate-180 origin-center accent-red-300"
             />
             <ControlButton
-                onClick={() => leafletMap.setZoom(leafletMap.getMinZoom())}
-                title="Zoom to min"
-            >
-                <FaMinus className="text-slate-900 text-[1rem] z-10" />
-                <FaMinus className="absolute text-yellow-200/40 text-[1rem] top-[4px] left-[4px]" />
-            </ControlButton>
+                onClick={() => leafletMap.zoomOut()}
+                title="Zoom out"
+                imageSrc="/map/unzoom_icon.png"
+                alt="Map Unzoom Icon"
+            />
         </div>
     );
 }
