@@ -1,4 +1,4 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { useMapImageUploader } from '@/app/hooks/useMapImageUploader';
 import React, { useRef, useState } from 'react';
 import { FaUpload, FaSpinner, FaCheck, FaExclamationTriangle, FaGamepad } from 'react-icons/fa';
@@ -6,7 +6,7 @@ import FFXIVImageSearch from './FFXIVImageSearch';
 import { compressImageToWebP } from '@/lib/utils/mapImageUtils';
 
 const MapFormImagePath = () => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap } = useAdmin();
     const { uploadState, uploadMapImage, reset } = useMapImageUploader();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showFFXIVSearch, setShowFFXIVSearch] = useState(false);
@@ -243,3 +243,4 @@ const MapFormImagePath = () => {
 }
 
 export default MapFormImagePath
+

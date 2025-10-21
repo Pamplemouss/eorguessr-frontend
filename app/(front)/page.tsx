@@ -1,12 +1,15 @@
 import React from "react";
 import { GameProvider } from "../providers/GameContextProvider";
+import { MainMapProvider } from "../providers/MainMapContextProvider";
 import Game from "./components/Game";
 
 const page = () => {
     return (
-        <GameProvider>
-            <Game />
-        </GameProvider>
+        <MainMapProvider>
+            <GameProvider>
+                <Game />
+            </GameProvider>
+        </MainMapProvider>
     );
 };
 

@@ -2,11 +2,11 @@
 
 import React from "react";
 import { MapType } from "@/lib/types/MapType";
-import { useAdminMapConfig } from "@/app/providers/AdminMapConfigContextProvider";
+import { useAdmin } from "@/app/providers/AdminContextProvider";
 import { FaLayerGroup } from "react-icons/fa";
 
 const AdminMapTypeSelector = () => {
-    const { selectedMapTypes, toggleMapType, setSelectedMapTypes } = useAdminMapConfig();
+    const { selectedMapTypes, toggleMapType, setSelectedMapTypes } = useAdmin();
 
     const mapTypeLabels: Record<MapType, string> = {
         [MapType.WORLD_MAP]: "World Map",
@@ -72,3 +72,4 @@ const AdminMapTypeSelector = () => {
 };
 
 export default AdminMapTypeSelector;
+

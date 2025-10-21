@@ -53,3 +53,4 @@ export default function AdminTabNavigation({ activeTab, onTabChange }: AdminTabN
         </div>
     );
 }
+

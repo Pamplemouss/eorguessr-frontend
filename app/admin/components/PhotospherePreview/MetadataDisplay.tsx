@@ -82,3 +82,4 @@ const MetadataDisplay: React.FC<MetadataDisplayProps> = ({ metadata }) => {
 };
 
 export default MetadataDisplay;
+

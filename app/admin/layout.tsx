@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "@/public/globals.css";
 import { LocaleProvider } from "@/app/providers/LocalContextProvider";
-import { MapProvider } from "@/app/providers/MapContextProvider";
-import { AdminMapConfigProvider } from "@/app/providers/AdminMapConfigContextProvider";
+import { MainMapProvider } from "@/app/providers/MainMapContextProvider";
+import { AdminProvider } from "@/app/providers/AdminContextProvider";
 
 export const metadata: Metadata = {
     title: "Administration - Eorguessr",
@@ -16,13 +16,14 @@ export default function RootLayout({
         <html lang="fr">
             <body>
                 <LocaleProvider>
-                    <AdminMapConfigProvider>
-                        <MapProvider>
+                    <MainMapProvider>
+                        <AdminProvider>
                             {children}
-                        </MapProvider>
-                    </AdminMapConfigProvider>
+                        </AdminProvider>
+                    </MainMapProvider>
                 </LocaleProvider>
             </body>
         </html>
     );
 }
+

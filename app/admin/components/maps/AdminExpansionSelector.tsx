@@ -2,11 +2,11 @@
 
 import React from "react";
 import { Expansion } from "@/lib/types/Expansion";
-import { useAdminMapConfig } from "@/app/providers/AdminMapConfigContextProvider";
+import { useAdmin } from "@/app/providers/AdminContextProvider";
 import { FaGamepad } from "react-icons/fa";
 
 const AdminExpansionSelector = () => {
-    const { selectedExpansions, toggleExpansion, setSelectedExpansions } = useAdminMapConfig();
+    const { selectedExpansions, toggleExpansion, setSelectedExpansions } = useAdmin();
 
     const handleSelectAll = () => {
         setSelectedExpansions(Object.values(Expansion));
@@ -65,3 +65,4 @@ const AdminExpansionSelector = () => {
 };
 
 export default AdminExpansionSelector;
+

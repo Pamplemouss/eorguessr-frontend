@@ -118,3 +118,4 @@ const PhotospherePreview = ({ photosphere }: PhotospherePreviewProps) => {
 }
 
 export default PhotospherePreview
+

@@ -174,17 +174,21 @@ function MapControlComponent({
     );
 }
 
-export default function MapControl({ useGameContext = false }: { useGameContext?: boolean }) {
-    // Use the appropriate context based on the prop
-    const gameContext = useGameContext ? useGameMap() : null;
-    const adminContext = !useGameContext ? useMap() : null;
+interface MapControlProps {
+    currentMap: Map;
+    allMaps: Map[];
+    showMapDetails?: boolean;
+    setShowMapDetails?: (show: boolean) => void;
+    onMapChange?: (mapId: string) => void;
+}
 
-    const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
-    const setCurrentMapById = useGameContext ? gameContext!.setCurrentMapById : adminContext!.setCurrentMapById;
-    const availableMaps = useGameContext ? gameContext!.availableMaps : adminContext!.maps;
-    // Only adminContext has showMapDetails and setShowMapDetails
-    const showMapDetails = !useGameContext ? adminContext?.showMapDetails : undefined;
-    const setShowMapDetails = !useGameContext ? adminContext?.setShowMapDetails : undefined;
+export default function MapControl({ 
+    currentMap, 
+    allMaps, 
+    showMapDetails, 
+    setShowMapDetails, 
+    onMapChange 
+}: MapControlProps) {
 
     const leafletMap = useLeafletMap();
     // Store the root and div so we can update the React component without re-creating the control
@@ -205,12 +209,18 @@ export default function MapControl({ useGameContext = false }: { useGameContext?
             const root = createRoot(div);
             rootRef.current = root;
             // Initial render
+            const handleMapChange = (id: string | null) => {
+                if (id && onMapChange) {
+                    onMapChange(id);
+                }
+            };
+            
             root.render(
                 <MapControlComponent
                     leafletMap={leafletMap}
                     currentMap={currentMap}
-                    setCurrentMapById={setCurrentMapById}
-                    maps={availableMaps}
+                    setCurrentMapById={handleMapChange}
+                    maps={allMaps}
                     showMapDetails={showMapDetails}
                     setShowMapDetails={setShowMapDetails}
                 />
@@ -239,18 +249,24 @@ export default function MapControl({ useGameContext = false }: { useGameContext?
     // Update the React component inside the control when props change
     useEffect(() => {
         if (rootRef.current && divRef.current) {
+            const handleMapChange = (id: string | null) => {
+                if (id && onMapChange) {
+                    onMapChange(id);
+                }
+            };
+            
             rootRef.current.render(
                 <MapControlComponent
                     leafletMap={leafletMap}
                     currentMap={currentMap}
-                    setCurrentMapById={setCurrentMapById}
-                    maps={availableMaps}
+                    setCurrentMapById={handleMapChange}
+                    maps={allMaps}
                     showMapDetails={showMapDetails}
                     setShowMapDetails={setShowMapDetails}
                 />
             );
         }
-    }, [leafletMap, currentMap, setCurrentMapById, availableMaps, showMapDetails, setShowMapDetails]);
+    }, [leafletMap, currentMap, onMapChange, allMaps, showMapDetails, setShowMapDetails]);
 
     return null;
 }

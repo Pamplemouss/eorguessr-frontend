@@ -1,10 +1,10 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { Map } from '@/lib/types/Map';
 import isEqual from 'lodash.isequal';
 import React, { useEffect, useState } from 'react'
 
 const MapFormActions = () => {
-    const { saveMap, deleteMap, isLoading, setCurrentMapById, currentMap, setCurrentMap } = useMap();
+    const { saveMap, deleteMap, isLoading, setCurrentMapById, currentMap, setCurrentMap } = useAdmin();
     const [cleanMapCopy, setCleanMapCopy] = useState<Map | null>(null);
 
     // Create a clean copy when currentMap ID changes
@@ -77,3 +77,4 @@ const MapFormActions = () => {
 }
 
 export default MapFormActions
+

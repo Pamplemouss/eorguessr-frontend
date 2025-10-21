@@ -1,8 +1,8 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import React from 'react'
 
 const MapFormId = () => {
-    const { currentMap } = useMap();
+    const { currentMap } = useAdmin();
     return (
         <input
             type="text"
@@ -14,3 +14,4 @@ const MapFormId = () => {
 }
 
 export default MapFormId
+

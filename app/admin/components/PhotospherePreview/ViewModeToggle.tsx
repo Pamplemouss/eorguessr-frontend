@@ -40,3 +40,4 @@ const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ viewMode, onViewModeCha
 };
 
 export default ViewModeToggle;
+

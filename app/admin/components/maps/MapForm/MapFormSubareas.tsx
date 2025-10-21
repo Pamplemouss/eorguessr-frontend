@@ -1,9 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { MapName } from '@/lib/types/Map';
 import React, { useEffect, useState } from 'react'
 
 const MapFormSubareas = () => {
-    const { maps, currentMap, setCurrentMap } = useMap();
+    const { maps, currentMap, setCurrentMap } = useAdmin();
     const [subareasEnabled, setSubareasEnabled] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [customNameEnabled, setCustomNameEnabled] = useState(false);
@@ -419,3 +419,4 @@ const MapFormSubareas = () => {
 }
 
 export default MapFormSubareas
+

@@ -230,3 +230,4 @@ const FFXIVImageSearch: React.FC<FFXIVImageSearchProps> = ({ mapName, onImageSel
 };
 
 export default FFXIVImageSearch;
+

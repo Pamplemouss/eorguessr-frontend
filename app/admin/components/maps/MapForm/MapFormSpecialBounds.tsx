@@ -1,9 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { MapType } from '@/lib/types/MapType';
 import React, { useState, useEffect } from 'react'
 
 const MapFormSpecialBounds = () => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap } = useAdmin();
     const [inputValue, setInputValue] = useState('');
 
     const parseBoundsString = (text: string): L.LatLngBoundsExpression | undefined => {
@@ -72,3 +72,4 @@ const MapFormSpecialBounds = () => {
 }
 
 export default MapFormSpecialBounds
+

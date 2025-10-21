@@ -1,4 +1,4 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { MapName } from '@/lib/types/Map';
 import { Expansion } from '@/lib/types/Expansion';
 import { MapType } from '@/lib/types/MapType';
@@ -11,7 +11,7 @@ import React, { useState } from 'react'
 import { FaGamepad, FaExclamationTriangle } from 'react-icons/fa';
 
 const MapFormName = () => {
-    const { currentMap, setCurrentMap, maps } = useMap();
+    const { currentMap, setCurrentMap, maps } = useAdmin();
     const [dataInput, setDataInput] = useState('');
     const [dataError, setDataError] = useState('');
     const [showImportSection, setShowImportSection] = useState(false);
@@ -435,3 +435,4 @@ const MapFormName = () => {
 }
 
 export default MapFormName
+

@@ -1,9 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { MapType } from '@/lib/types/MapType';
 import React from 'react'
 
 const MapFormType = () => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap } = useAdmin();
 
     return (
         <div className="flex flex-col gap-2">
@@ -26,3 +26,4 @@ const MapFormType = () => {
 }
 
 export default MapFormType
+

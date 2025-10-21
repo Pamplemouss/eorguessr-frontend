@@ -1,5 +1,5 @@
 import { useState } from "react";
-import MapEor from "../../components/MapEor/MapEor";
+import AdminMapEor from "../../components/MapEor/AdminMapEor";
 import MapList from "./maps/MapList";
 import AdminLocaleSelector from "./maps/AdminLocaleSelector";
 import AdminExpansionSelector from "./maps/AdminExpansionSelector";
@@ -49,7 +49,7 @@ export default function MapsTab() {
                             />
                         </div>
                         <div className="flex-1 w-full flex items-center justify-center">
-                            <MapEor
+                            <AdminMapEor
                                 showPolygonsEditor={showPolygonsEditor}
                                 dragMode={dragMode}
                             />
@@ -60,3 +60,4 @@ export default function MapsTab() {
         </div>
     );
 }
+

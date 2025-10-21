@@ -1,9 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { MapType } from '@/lib/types/MapType';
 import React, { useState, useEffect } from 'react'
 
 const MapFormSpecialCenter = () => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap } = useAdmin();
     const [inputValue, setInputValue] = useState('');
 
     // Initialize input value from currentMap
@@ -60,3 +60,4 @@ const MapFormSpecialCenter = () => {
 }
 
 export default MapFormSpecialCenter
+

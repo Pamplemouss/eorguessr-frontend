@@ -1,9 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import React from 'react'
 import { FaExclamationTriangle } from 'react-icons/fa';
 
 const AdminMapError = () => {
-    const { error } = useMap();
+    const { error } = useAdmin();
     
     return (
         <>
@@ -18,3 +18,4 @@ const AdminMapError = () => {
 }
 
 export default AdminMapError
+

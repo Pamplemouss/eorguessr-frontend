@@ -26,3 +26,4 @@ export default function AdminHeader({ activeTab, photospheresCount }: AdminHeade
         </div>
     );
 }
+

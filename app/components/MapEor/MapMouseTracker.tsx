@@ -1,10 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { Map } from '@/lib/types/Map';
 import getBoundsFromMap from '@/lib/utils/getBoundsFromMap';
 import React, { useState } from 'react'
 import { useMapEvents } from 'react-leaflet';
 
-const MapMouseTracker = () => {
-    const { currentMap } = useMap();
+const MapMouseTracker = ({ currentMap }: { currentMap: Map }) => {
     const [cursorCoord, setCursorCoord] = useState<{ lat: number; lng: number } | null>(null);
 
     const bounds = getBoundsFromMap(currentMap) as [[number, number], [number, number]];

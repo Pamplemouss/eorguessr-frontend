@@ -1,9 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { MapType } from '@/lib/types/MapType';
 import React from 'react'
 
 const MapFormSpecialZoom = () => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap } = useAdmin();
 
     const parseZoomString = (text: string): number | undefined => {
         try {
@@ -42,3 +42,4 @@ const MapFormSpecialZoom = () => {
 }
 
 export default MapFormSpecialZoom
+

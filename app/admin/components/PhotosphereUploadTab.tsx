@@ -15,3 +15,4 @@ export default function PhotosphereUploadTab({ onComplete }: PhotosphereUploadTa
         </div>
     );
 }
+

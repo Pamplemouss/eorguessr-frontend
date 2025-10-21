@@ -1,9 +1,9 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { MapType } from '@/lib/types/MapType';
 import React from 'react'
 
 const MapFormRegion = () => {
-    const { maps, currentMap, setCurrentMap } = useMap();
+    const { maps, currentMap, setCurrentMap } = useAdmin();
     const value = currentMap?.region || "";
     const options = maps
         .filter((m) => m.type === MapType.REGION)
@@ -40,3 +40,4 @@ const MapFormRegion = () => {
 }
 
 export default MapFormRegion
+

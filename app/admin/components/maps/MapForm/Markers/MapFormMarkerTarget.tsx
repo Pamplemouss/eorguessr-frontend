@@ -1,4 +1,4 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { Marker } from '@/lib/types/Marker';
 import React, { useState, useMemo } from 'react'
 
@@ -9,7 +9,7 @@ const MapFormMarkerTarget = ({
     draft: Marker,
     setDraft: (d: Marker) => void
 }) => {
-    const { maps } = useMap();
+    const { maps } = useAdmin();
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredMaps = useMemo(() => {
@@ -45,3 +45,4 @@ const MapFormMarkerTarget = ({
 }
 
 export default MapFormMarkerTarget
+

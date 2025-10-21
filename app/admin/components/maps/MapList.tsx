@@ -1,17 +1,13 @@
-import { useAdminMapConfig } from '@/app/providers/AdminMapConfigContextProvider';
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { createEmptyMap } from '@/lib/utils/createEmptyMap';
-import useFilterMaps from '@/lib/utils/useFilterMaps';
 import { MapType } from '@/lib/types/MapType';
 import React, { useState } from 'react'
 import { FaPlus, FaMap, FaExclamationTriangle } from 'react-icons/fa';
 
 const MapList = () => {
-    const { maps, currentMap, setCurrentMapById, setCurrentMap } = useMap();
-    const { selectedExpansions, selectedMapTypes } = useAdminMapConfig();
+    const { filteredMaps: maps, currentMap, setCurrentMapById, setCurrentMap } = useAdmin();
     const [search, setSearch] = useState("");
-    const filteredMaps = useFilterMaps(maps, selectedExpansions, selectedMapTypes)
-        .filter((m) =>
+    const filteredMaps = maps.filter((m) =>
             m.name?.en?.toLowerCase().includes(search.toLowerCase())
         );
 
@@ -163,3 +159,4 @@ const MapList = () => {
 }
 
 export default MapList
+

@@ -1,4 +1,4 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { Marker } from '@/lib/types/Marker';
 import { createEmptyMarker } from '@/lib/utils/createEmptyMarker';
 import React, { useState } from 'react'
@@ -16,7 +16,7 @@ const MapFormMarkersList = ({
     setDraft: (d: Marker) => void,
     setShowForm: (show: boolean) => void,
 }) => {
-    const { maps, currentMap, setCurrentMap } = useMap();
+    const { maps, currentMap, setCurrentMap } = useAdmin();
 
     const getMapName = (id: string) => maps.find(m => m.id === id)?.name["en"] || id;
 
@@ -85,3 +85,4 @@ const MapFormMarkersList = ({
 }
 
 export default MapFormMarkersList
+

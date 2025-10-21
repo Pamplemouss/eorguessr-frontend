@@ -3,10 +3,9 @@ import { useEffect } from "react";
 import L from "leaflet";
 import { createRoot } from "react-dom/client";
 import { useMap as useLeafletMap } from "react-leaflet";
-import { useGameMap } from "@/app/providers/GameMapContextProvider";
-import { useMap } from "@/app/providers/MapContextProvider";
 import { useLocale } from "@/app/providers/LocalContextProvider";
 import { getMapById } from "@/lib/utils/getMapById";
+import { Map } from "@/lib/types/Map";
 
 function SubAreaContent({
     currentMap,
@@ -54,15 +53,13 @@ function SubAreaContent({
     );
 }
 
-export default function SubAreaControl({ useGameContext = false }: { useGameContext?: boolean }) {
-    // Use the appropriate context based on the prop
-    const gameContext = useGameContext ? useGameMap() : null;
-    const adminContext = !useGameContext ? useMap() : null;
-    
-    const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
-    const setCurrentMapById = useGameContext ? gameContext!.setCurrentMapById : adminContext!.setCurrentMapById;
-    const availableMaps = useGameContext ? gameContext!.availableMaps : adminContext!.maps;
-    
+interface SubAreaControlProps {
+    currentMap: Map;
+    allMaps: Map[];
+    onMapChange?: (mapId: string) => void;
+}
+
+export default function SubAreaControl({ currentMap, allMaps, onMapChange }: SubAreaControlProps) {
     const map = useLeafletMap();
     const { locale } = useLocale();
 
@@ -75,13 +72,19 @@ export default function SubAreaControl({ useGameContext = false }: { useGameCont
             const div = L.DomUtil.create("div");
             const root = createRoot(div);
 
+            const handleMapChange = (mapId: string | null) => {
+                if (mapId && onMapChange) {
+                    onMapChange(mapId);
+                }
+            };
+
             root.render(
                 <SubAreaContent
                     currentMap={currentMap}
-                    availableMaps={availableMaps}
-                    setCurrentMapById={setCurrentMapById}
+                    availableMaps={allMaps}
+                    setCurrentMapById={handleMapChange}
                     locale={locale}
-                    useGameContext={useGameContext}
+                    useGameContext={false}
                 />
             );
 
@@ -93,7 +96,7 @@ export default function SubAreaControl({ useGameContext = false }: { useGameCont
         return () => {
             control.remove();
         };
-    }, [currentMap, availableMaps, locale, map, setCurrentMapById, useGameContext]);
+    }, [currentMap, allMaps, locale, map, onMapChange]);
 
     return null;
 }

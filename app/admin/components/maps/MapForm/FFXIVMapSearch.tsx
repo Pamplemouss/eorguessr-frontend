@@ -328,3 +328,4 @@ const FFXIVMapSearch: React.FC<FFXIVMapSearchProps> = ({ onMapSelect, onClose })
 };
 
 export default FFXIVMapSearch;
+

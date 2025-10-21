@@ -15,14 +15,21 @@ const MapMarker = ({
     setHoveredIdx,
     dragMode,
     idx,
+    currentMap,
+    allMaps,
+    changeMapEnabled,
+    onMapChange,
 }: {
     marker: MarkerType;
     hoveredIdx: number | null;
     setHoveredIdx: React.Dispatch<React.SetStateAction<number | null>>;
     dragMode: boolean;
     idx: number;
+    currentMap: Map;
+    allMaps: Map[];
+    changeMapEnabled: boolean;
+    onMapChange?: (mapId: string) => void;
 }) => {
-    const { currentMap, maps, setCurrentMapById, changeMapEnabled, setCurrentMap } = useMap();
     const { locale } = useLocale();
 
     function getTextIcon(markerMap: Map | undefined, isHovered: boolean) {
@@ -39,6 +46,8 @@ const MapMarker = ({
                 text = markerMap.name[locale as keyof typeof markerMap.name] || "Unknown";
             }
         }
+
+        console.log(allMaps)
         
         const isExit = markerMap ? isMapExit(currentMap, markerMap) : false;
         const isDungeon = markerMap?.type === MapType.DUNGEON;
@@ -62,7 +71,8 @@ const MapMarker = ({
             i === idx ? { ...m, latLng: newLatLng } : m
         );
         const updatedMap = { ...currentMap, markers: updatedMarkers };
-        setCurrentMap(updatedMap);
+        // Map update would need to be handled by parent component
+        console.log("Map marker updated:", updatedMap);
     }
 
     function getMarkerClass(isHovered: boolean, isDungeon: boolean, isExit: boolean) {
@@ -76,7 +86,7 @@ const MapMarker = ({
     return (
         <Marker
             position={marker.latLng}
-            icon={getTextIcon(getMapById(maps, marker.target), hoveredIdx === idx)}
+            icon={getTextIcon(getMapById(allMaps, marker.target), hoveredIdx === idx)}
             draggable={dragMode}
             eventHandlers={{
                 mouseover: () => setHoveredIdx(idx),
@@ -89,7 +99,9 @@ const MapMarker = ({
                 },
                 click: () => {
                     if (changeMapEnabled && marker.target) {
-                        setCurrentMapById(marker.target);
+                        if (onMapChange) {
+                            onMapChange(marker.target);
+                        }
                     }
                 },
             }}

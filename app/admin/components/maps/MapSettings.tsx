@@ -1,4 +1,3 @@
-import { useMap } from '@/app/providers/MapContextProvider';
 import React from 'react'
 import { FaCog, FaEdit, FaArrowsAlt } from 'react-icons/fa';
 
@@ -13,26 +12,12 @@ const MapSettings = ({
     dragMode: boolean;
     setDragMode: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-    const { changeMapEnabled, setChangeMapEnabled } = useMap();
     return (
         <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
                 <FaCog className="text-gray-500" />
                 <span className="font-medium text-gray-700">Paramètres de la carte:</span>
             </div>
-            
-            <button
-                className={`px-3 py-2 text-sm rounded-md transition-colors flex items-center gap-2 ${
-                    changeMapEnabled 
-                        ? "bg-purple-100 text-purple-700 border border-purple-300" 
-                        : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
-                }`}
-                onClick={() => setChangeMapEnabled(!changeMapEnabled)}
-            >
-                {changeMapEnabled
-                    ? "Navigation activée"
-                    : "Activer navigation"}
-            </button>
             
             <button
                 className={`px-3 py-2 text-sm rounded-md transition-colors flex items-center gap-2 ${
@@ -62,3 +47,4 @@ const MapSettings = ({
 }
 
 export default MapSettings
+

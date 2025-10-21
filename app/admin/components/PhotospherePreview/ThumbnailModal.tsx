@@ -38,3 +38,4 @@ const ThumbnailModal: React.FC<ThumbnailModalProps> = ({
 };
 
 export default ThumbnailModal;
+

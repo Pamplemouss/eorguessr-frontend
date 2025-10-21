@@ -1,4 +1,4 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import { Marker } from '@/lib/types/Marker';
 import { createEmptyMarker } from '@/lib/utils/createEmptyMarker';
 import React from 'react'
@@ -16,7 +16,7 @@ const MapFormMarkerActions = ({
     setDraft: (d: Marker) => void,
     setShowForm: (show: boolean) => void,
 }) => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap } = useAdmin();
 
     const handleCancel = () => {
         setEditingIndex(null);
@@ -62,3 +62,4 @@ const MapFormMarkerActions = ({
 }
 
 export default MapFormMarkerActions
+

@@ -4,8 +4,7 @@ import { MapContainer, Polygon, ImageOverlay } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import React, { useState } from "react";
-import { useGameMap } from "@/app/providers/GameMapContextProvider";
-import { useMap } from "@/app/providers/MapContextProvider";
+import { Map } from "@/lib/types/Map";
 import MapControl from "./MapControl";
 import SubAreaControl from "./SubAreaControl";
 import PolygonsEditor from "./PolygonsEditor";
@@ -33,27 +32,30 @@ const normalizeGeojsonData = (data: any): [number, number][][] => {
     return [];
 };
 
-export default function MapEor({
-    showPolygonsEditor = false,
-    dragMode = false,
-    fixed = false,
-    useGameContext = false,
-}: {
+export interface MapEorProps {
+    currentMap: Map;
+    allMaps?: Map[];
     showPolygonsEditor?: boolean;
     dragMode?: boolean;
     fixed?: boolean;
-    useGameContext?: boolean;
-}) {
+    showMapDetails?: boolean;
+    changeMapEnabled?: boolean;
+    onMapChange?: (mapId: string) => void;
+    onShowMapDetailsChange?: (show: boolean) => void;
+}
+
+export default function MapEor({
+    currentMap,
+    allMaps = [],
+    showPolygonsEditor = false,
+    dragMode = false,
+    fixed = false,
+    showMapDetails = true,
+    changeMapEnabled = false,
+    onMapChange,
+    onShowMapDetailsChange,
+}: MapEorProps) {
     const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-
-    // Use the appropriate context based on the prop
-    const gameContext = useGameContext ? useGameMap() : null;
-    const adminContext = !useGameContext ? useMap() : null;
-
-    const currentMap = useGameContext ? gameContext!.currentMap : adminContext!.currentMap;
-
-    // Only adminContext has showMapDetails
-    const showMapDetails = !useGameContext ? adminContext?.showMapDetails : true;
 
     const bounds = getBoundsFromMap(currentMap);
 
@@ -99,12 +101,22 @@ export default function MapEor({
                 minZoom={1}
                 maxZoom={5}
             >
-                <MapMouseTracker />
-                <MapControl useGameContext={useGameContext} />
-                <SubAreaControl useGameContext={useGameContext} />
+                <MapMouseTracker currentMap={currentMap} />
+                <MapControl 
+                    currentMap={currentMap}
+                    allMaps={allMaps}
+                    showMapDetails={showMapDetails}
+                    setShowMapDetails={onShowMapDetailsChange}
+                    onMapChange={onMapChange}
+                />
+                <SubAreaControl 
+                    currentMap={currentMap}
+                    allMaps={allMaps}
+                    onMapChange={onMapChange}
+                />
                 {currentMap.imagePath && <ImageOverlay url={imageUrl} bounds={bounds} />}
                 <PolygonsEditor visible={showPolygonsEditor} />
-                {showMapDetails && currentMap.markers?.map((marker, idx) => (
+                {showMapDetails && currentMap.markers?.map((marker: any, idx: number) => (
                     <React.Fragment key={idx}>
                         <MapMarker
                             marker={marker}
@@ -112,6 +124,10 @@ export default function MapEor({
                             setHoveredIdx={setHoveredIdx}
                             dragMode={dragMode}
                             idx={idx}
+                            currentMap={currentMap}
+                            allMaps={allMaps}
+                            changeMapEnabled={changeMapEnabled}
+                            onMapChange={onMapChange}
                         />
                         {marker.geojson?.area && normalizeGeojsonData(marker.geojson.area)
                             .filter(polygon => polygon && Array.isArray(polygon) && polygon.length > 0)
@@ -138,8 +154,8 @@ export default function MapEor({
                                     }}
                                     eventHandlers={{
                                         click: () => {
-                                            if (adminContext?.changeMapEnabled && marker.target) {
-                                                adminContext.setCurrentMapById(marker.target);
+                                            if (changeMapEnabled && marker.target && onMapChange) {
+                                                onMapChange(marker.target);
                                             }
                                         },
                                         mouseover: () => setHoveredIdx(idx),

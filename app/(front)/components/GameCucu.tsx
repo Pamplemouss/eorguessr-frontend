@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { GameStep } from "@/lib/types/common/GameStep";
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
 import { useGame } from "@/app/providers/GameContextProvider";
-import { GameMapProvider } from "@/app/providers/GameMapContextProvider";
+import { GameMapProvider } from "@/app/providers/NewGameMapContextProvider";
 import { Expansion } from "@/lib/types/Expansion";
 import { MapType } from "@/lib/types/MapType";
-import MapEor from "@/app/components/MapEor/MapEor";
+import GameMapEor from "@/app/components/MapEor/GameMapEor";
 
 export default function GameCucu() {
     const { room, gameState } = useGame();
@@ -199,7 +199,7 @@ export default function GameCucu() {
                         )}
 
                         {/* Map is now positioned absolutely at bottom right */}
-                        <MapEor fixed={true} useGameContext={true} />
+                        <GameMapEor fixed={true} />
                     </div>
                 </GameMapProvider>
             )}

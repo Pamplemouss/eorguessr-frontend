@@ -1,8 +1,8 @@
-import { useMap } from '@/app/providers/MapContextProvider';
+import { useAdmin } from '@/app/providers/AdminContextProvider';
 import React from 'react'
 
 const MapFormSize = () => {
-    const { currentMap, setCurrentMap } = useMap();
+    const { currentMap, setCurrentMap } = useAdmin();
 
     const handleSizeChange = (dimension: 'x' | 'y', value: string) => {
         if (!currentMap) return;
@@ -46,3 +46,4 @@ const MapFormSize = () => {
 }
 
 export default MapFormSize
+

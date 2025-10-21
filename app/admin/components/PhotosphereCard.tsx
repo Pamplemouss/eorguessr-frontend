@@ -27,3 +27,4 @@ const PhotosphereCard = ({
 }
 
 export default PhotosphereCard
+

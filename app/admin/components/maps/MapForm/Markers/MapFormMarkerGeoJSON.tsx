@@ -229,3 +229,4 @@ const MapFormMarkerGeoJSON = ({
 }
 
 export default MapFormMarkerGeoJSON
+

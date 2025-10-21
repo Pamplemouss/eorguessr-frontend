@@ -5,6 +5,7 @@ import { Map } from "@/lib/types/Map";
 import { createEmptyMap } from "@/lib/utils/createEmptyMap";
 import useGameFilterMaps from "@/lib/utils/useGameFilterMaps";
 import { useGame } from "./GameContextProvider";
+import { useMainMap } from "./MainMapContextProvider";
 
 interface GameMapContextType {
     availableMaps: Map[];
@@ -25,40 +26,15 @@ const GameMapContext = createContext<GameMapContextType>({
 });
 
 export function GameMapProvider({ children }: { children: ReactNode }) {
-    const [allMaps, setAllMaps] = useState<Map[]>([]);
-    const [currentMap, setCurrentMap] = useState<Map>(createEmptyMap());
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
+    const mainMapContext = useMainMap();
     const { gameState } = useGame();
+    const [currentMap, setCurrentMap] = useState<Map>(createEmptyMap());
 
     // Get filtered maps based on game state selections
     const selectedExpansions = gameState?.selectedExpansions ? Array.from(gameState.selectedExpansions) : [];
     const selectedMapTypes = gameState?.selectedMapTypes ? Array.from(gameState.selectedMapTypes) : [];
     
-    const availableMaps = useGameFilterMaps(allMaps, selectedExpansions, selectedMapTypes);
-
-    const fetchMaps = async () => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await fetch("/api/maps");
-            if (!response.ok) {
-                throw new Error(`Failed to fetch maps: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            setAllMaps(data);
-            console.log("Fetched maps:", data);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
-            setError(errorMessage);
-            console.error("Error fetching maps:", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const availableMaps = useGameFilterMaps(mainMapContext.allMaps, selectedExpansions, selectedMapTypes);
 
     const setCurrentMapById = (mapId: string | null) => {
         const foundMap = availableMaps.find(map => map.id === mapId);
@@ -66,15 +42,6 @@ export function GameMapProvider({ children }: { children: ReactNode }) {
             setCurrentMap(foundMap);
         }
     };
-
-    const refreshMaps = async () => {
-        await fetchMaps();
-    };
-
-    // Fetch maps on mount
-    useEffect(() => {
-        fetchMaps();
-    }, []);
 
     // Auto-select the first world map when available maps change
     useEffect(() => {
@@ -91,10 +58,10 @@ export function GameMapProvider({ children }: { children: ReactNode }) {
             value={{
                 availableMaps,
                 currentMap,
-                isLoading,
-                error,
+                isLoading: mainMapContext.isLoading,
+                error: mainMapContext.error,
                 setCurrentMapById,
-                refreshMaps,
+                refreshMaps: mainMapContext.refreshMaps,
             }}
         >
             {children}
