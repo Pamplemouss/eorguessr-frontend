@@ -65,7 +65,7 @@ export const S3FilenameMigrator: React.FC = () => {
             <div className="border-b border-gray-200 pb-4 mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">S3 Filename Migration</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                    Migrate existing map filenames to use the new sanitized format (includes expansion and map type). 
+                    Migrate existing map filenames to use the improved sanitized format with proper expansion codes (e.g., "Endwalker" → "ew") and map type detection. 
                     This will update both MongoDB records and rename files on S3.
                 </p>
             </div>

@@ -95,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     map.expansion, 
                     map.type
                 );
+                
                 result.newImagePath = newFilename;
 
                 // Check if filename needs to be updated

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { FFXIVMapTranslations } from '@/lib/services/ffxivAPI';
+import { MapType } from '@/lib/types/MapType';
 import { FaSearch, FaSpinner, FaTimes, FaGamepad } from 'react-icons/fa';
 
 interface FFXIVMapSearchProps {
-  onMapSelect: (mapData: FFXIVMapTranslations) => void;
+  onMapSelect: (mapData: FFXIVMapTranslations, selectedMapType: MapType) => void;
   onClose: () => void;
 }
 
@@ -18,6 +19,7 @@ interface SearchResponse {
 const FFXIVMapSearch: React.FC<FFXIVMapSearchProps> = ({ onMapSelect, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchLanguage, setSearchLanguage] = useState('en');
+  const [selectedMapType, setSelectedMapType] = useState<MapType>(MapType.MAP);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<FFXIVMapTranslations[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -150,6 +152,21 @@ const FFXIVMapSearch: React.FC<FFXIVMapSearchProps> = ({ onMapSelect, onClose })
                 ))}
               </select>
             </div>
+            <div className="w-32">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Map Type
+              </label>
+              <select
+                value={selectedMapType}
+                onChange={(e) => setSelectedMapType(e.target.value as MapType)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              >
+                <option value={MapType.MAP}>Map</option>
+                <option value={MapType.REGION}>Region</option>
+                <option value={MapType.WORLD_MAP}>World Map</option>
+                <option value={MapType.DUNGEON}>Dungeon</option>
+              </select>
+            </div>
             <div className="flex items-end">
               <button
                 onClick={handleSearch}
@@ -182,7 +199,7 @@ const FFXIVMapSearch: React.FC<FFXIVMapSearchProps> = ({ onMapSelect, onClose })
                   <div
                     key={map.id}
                     className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-                    onClick={() => onMapSelect(map)}
+                    onClick={() => onMapSelect(map, selectedMapType)}
                   >
                     <div className="flex flex-col gap-4">
                       {/* Map Image - Square */}

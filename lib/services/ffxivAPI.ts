@@ -120,8 +120,62 @@ export function generateMapFilename(mapName: string, subName?: string, expansion
 
     const mainName = sanitizeName(mapName);
     const sanitizedSubName = subName ? sanitizeName(subName) : '';
-    const sanitizedExpansion = expansion ? sanitizeName(expansion) : 'unknown';
-    const sanitizedMapType = mapType ? sanitizeName(mapType) : 'map';
+
+    // Map expansion names to proper enum values
+    const getExpansionCode = (expansion: string): string => {
+        if (!expansion) {
+            return 'unknown';
+        }
+        
+        // Handle if already an enum value (uppercase or lowercase)
+        const validEnums = ['ARR', 'HW', 'SB', 'ShB', 'EW', 'DT'];
+        const upperExpansion = expansion.toUpperCase();
+        if (validEnums.includes(upperExpansion)) {
+            return upperExpansion.toLowerCase();
+        }
+        
+        // Map full expansion names to enum values
+        const expansionMapping: Record<string, string> = {
+            'a realm reborn': 'arr',
+            'heavensward': 'hw', 
+            'stormblood': 'sb',
+            'shadowbringers': 'shb',
+            'endwalker': 'ew',
+            'dawntrail': 'dt'
+        };
+        
+        const normalizedExpansion = expansion.toLowerCase().trim();
+        return expansionMapping[normalizedExpansion] || 'unknown';
+    };
+    
+    // Map map type names to proper enum values  
+    const getMapTypeCode = (mapType: string): string => {
+        if (!mapType) {
+            return 'map';
+        }
+        
+        // Handle if already an enum value (case insensitive)
+        const validEnums = ['WORLD_MAP', 'REGION', 'MAP', 'DUNGEON'];
+        const upperMapType = mapType.toUpperCase();
+        if (validEnums.includes(upperMapType)) {
+            return upperMapType.toLowerCase().replace('_', '');
+        }
+        
+        // Map various map type names to enum values
+        const mapTypeMapping: Record<string, string> = {
+            'world map': 'worldmap',
+            'world_map': 'worldmap',
+            'region': 'region',
+            'map': 'map',
+            'dungeon': 'dungeon'
+        };
+        
+        const normalizedMapType = mapType.toLowerCase().trim();
+        return mapTypeMapping[normalizedMapType] || 'map';
+    };
+
+    const expansionCode = getExpansionCode(expansion || '');
+    const mapTypeCode = getMapTypeCode(mapType || '');
     
     // Build filename parts - always include expansion and map type
     const parts = [mainName];
@@ -131,10 +185,19 @@ export function generateMapFilename(mapName: string, subName?: string, expansion
     }
     
     // Always add expansion and map type
-    parts.push(sanitizedExpansion);
-    parts.push(sanitizedMapType);
+    parts.push(expansionCode);
+    parts.push(mapTypeCode);
     
-    return `${parts.join('_')}.webp`;
+    const finalFilename = `${parts.join('_')}.webp`;
+    
+    // Log for debugging problematic cases
+    if (finalFilename.includes('unknown') || finalFilename.includes('undefined')) {
+        console.log('🔍 Filename generation debug (issue detected):');
+        console.log('  Input: mapName=', mapName, 'subName=', subName, 'expansion=', expansion, 'mapType=', mapType);
+        console.log('  Final filename:', finalFilename);
+    }
+    
+    return finalFilename;
 }
 
 /**

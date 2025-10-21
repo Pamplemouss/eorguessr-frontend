@@ -1,6 +1,7 @@
 import { useMap } from '@/app/providers/MapContextProvider';
 import { MapName } from '@/lib/types/Map';
 import { Expansion } from '@/lib/types/Expansion';
+import { MapType } from '@/lib/types/MapType';
 import { createEmptyMap } from '@/lib/utils/createEmptyMap';
 import { FFXIVMapTranslations, generateMapFilename } from '@/lib/services/ffxivAPI';
 import { useMapImageUploader } from '@/app/hooks/useMapImageUploader';
@@ -105,10 +106,13 @@ const MapFormName = () => {
         }
     };
     
-    const handleFFXIVMapSelect = async (ffxivMap: FFXIVMapTranslations) => {
+    const handleFFXIVMapSelect = async (ffxivMap: FFXIVMapTranslations, selectedMapType: MapType) => {
         try {
             // Create a new map with FFXIV data
             const newMap = createEmptyMap();
+            
+            // Set the map type from the selector
+            newMap.type = selectedMapType;
             
             // Set the map names from FFXIV data
             newMap.name = {
@@ -180,7 +184,9 @@ const MapFormName = () => {
                         body: JSON.stringify({
                             mapImageId: ffxivMap.mapImageId,
                             mapName: ffxivMap.mapName,
-                            placeNameSub: ffxivMap.placeNameSub
+                            placeNameSub: ffxivMap.placeNameSub,
+                            expansion: newMap.expansion,
+                            mapType: selectedMapType
                         })
                     });
                     
@@ -191,16 +197,38 @@ const MapFormName = () => {
                         const imageBlob = await fetch(image.imageUrl);
                         const imageFile = new File([await imageBlob.blob()], image.suggestedFilename);
                         
-                        // Convert to WebP and upload using the suggested filename logic
+                        // Convert to WebP and upload directly to S3 using the suggested filename
                         const webpBlob = await compressImageToWebP(imageFile, 0.8);
                         const webpFile = new File([webpBlob], image.suggestedFilename, { type: 'image/webp' });
                         
-                        // Upload to S3 using existing functionality
-                        // Use the suggested filename (without .webp extension) as the map name
-                        const mapNameForUpload = image.suggestedFilename.replace('.webp', '');
-                        const uploadedUrl = await uploadMapImage(webpFile, mapNameForUpload);
-                        if (uploadedUrl) {
-                            newMap.imagePath = uploadedUrl;
+                        // Upload directly to S3 using the suggested filename
+                        const s3Key = `maps/${image.suggestedFilename}`;
+                        
+                        // Get signed URL for upload
+                        const urlResponse = await fetch('/api/upload-url', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fileName: image.suggestedFilename,
+                                fileType: 'image/webp',
+                                customKey: s3Key
+                            })
+                        });
+
+                        if (urlResponse.ok) {
+                            const { uploadUrl, fileUrl } = await urlResponse.json();
+
+                            // Upload to S3
+                            const uploadResponse = await fetch(uploadUrl, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'image/webp' },
+                                body: webpBlob
+                            });
+
+                            if (uploadResponse.ok) {
+                                // Set the imagePath to just the filename (as expected by the system)
+                                newMap.imagePath = image.suggestedFilename;
+                            }
                         }
                     }
                 } catch (error) {
